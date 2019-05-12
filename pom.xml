@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.lfg.digital.digitools</groupId>
+	<artifactId>aws-ses-enrollment</artifactId>
+	<version>1.0</version>
+	<packaging>jar</packaging>
+	<name>garmin-jpi</name>
+	<description>DigiTools AWS email service - initial use case to ensure bamboo users appropriately registered in SES for email notifications</description>
+
+	<properties>
+		<newrelic.version>4.7.0</newrelic.version>
+		<maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
+		<versions-maven-plugin.version>2.5</versions-maven-plugin.version>
+		<buildToken>BUILD${bamboo_buildNumber}</buildToken>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<docker.image.prefix>804777715682.dkr.ecr.us-east-1.amazonaws.com</docker.image.prefix>
+		<java.version>10</java.version>
+	</properties>
+
+	<distributionManagement>
+		<repository>
+			<id>digital-releases</id>
+			<name>LMB Release Repository</name>
+			<url>
+                https://tools.digital.lincolnfinancial.codes/artifactory/java/
+            </url>
+		</repository>
+
+		<snapshotRepository>
+			<id>digital-snapshots</id>
+			<name>LMB Snapshot Repository</name>
+			<url>
+                https://tools.digital.lincolnfinancial.codes/artifactory/java/
+            </url>
+		</snapshotRepository>
+	</distributionManagement>
+
+	<parent>
+		<groupId>com.lfg.digital</groupId>
+		<artifactId>parent-pom-spring-boot</artifactId>
+		<version>2.0.6.RELEASE-BUILD6-878607</version>
+		<relativePath /> <!-- lookup parent from repository -->
+	</parent>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-hateoas</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.opencsv</groupId>
+			<artifactId>opencsv</artifactId>
+			<version>4.5</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk</artifactId>
+			<version>1.11.440</version>
+		</dependency>
+		<dependency>
+			<groupId>com.newrelic.agent.java</groupId>
+			<artifactId>newrelic-agent</artifactId>
+			<version>${newrelic.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<finalName>aws-ses-enrollment-service</finalName>
+
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>versions-maven-plugin</artifactId>
+				<version>${versions-maven-plugin.version}</version>
+				<configuration>
+					<newVersion>${buildToken}</newVersion>
+				</configuration>
+			</plugin>
+
+			<!-- Add NewRelic agent to src/main/docker/newrelic/ -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>${maven-dependency-plugin.version}</version>
+				<executions>
+					<execution>
+						<id>copy-new-relic</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<includeGroupIds>com.newrelic.agent.java</includeGroupIds>
+							<includeArtifactIds>newrelic-agent</includeArtifactIds>
+							<stripVersion>true</stripVersion>
+							<outputDirectory>src/main/docker/newrelic</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>com.spotify</groupId>
+				<artifactId>docker-maven-plugin</artifactId>
+				<version>1.2.0</version>
+
+				<executions>
+					<execution>
+						<goals>
+							<goal>build</goal>
+						</goals>
+					</execution>
+				</executions>
+
+				<dependencies>
+					<dependency>
+						<groupId>javax.activation</groupId>
+						<artifactId>activation</artifactId>
+						<version>1.1.1</version>
+					</dependency>
+				</dependencies>
+
+				<configuration>
+					<imageName>${docker.image.prefix}/${project.artifactId}:BUILD${bamboo_buildNumber}</imageName>
+					<dockerDirectory>src/main/docker</dockerDirectory>
+					<resources>
+						<resource>
+							<targetPath>/</targetPath>
+							<directory>${project.build.directory}</directory>
+							<include>${project.build.finalName}.jar</include>
+						</resource>
+					</resources>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.0</version>
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.22.0</version>
+				<configuration>
+					<argLine>
+						--illegal-access=permit
+					</argLine>
+				</configuration>
+			</plugin>
+
+			<!-- <plugin> <groupId>com.spotify</groupId> <artifactId>dockerfile-maven-plugin</artifactId> 
+				<version>1.3.6</version> <executions> <execution> <goals> <goal>build</goal> 
+				</goals> </execution> </executions> <dependencies> <dependency> <groupId>javax.activation</groupId> 
+				<artifactId>activation</artifactId> <version>1.1.1</version> </dependency> 
+				</dependencies> <configuration> <repository>${docker.image.prefix}/${project.artifactId}</repository> 
+				<tag>${project.version}</tag> <contextDirectory>src/main/docker</contextDirectory> 
+				<buildArgs> <JAR_FILE>${project.build.finalName}.${project.packaging}</JAR_FILE> 
+				</buildArgs> </configuration> </plugin> -->
+
+		</plugins>
+	</build>
+
+</project>
