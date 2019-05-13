@@ -4,12 +4,11 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.lfg.digital.digitools</groupId>
-	<artifactId>aws-ses-enrollment</artifactId>
+	<groupId>com.zerotreedelta</groupId>
+	<artifactId>garmin-conversion-service</artifactId>
 	<version>1.0</version>
 	<packaging>jar</packaging>
-	<name>garmin-jpi</name>
-	<description>DigiTools AWS email service - initial use case to ensure bamboo users appropriately registered in SES for email notifications</description>
+	<name>garmin-conversion-service</name>
 
 	<properties>
 		<newrelic.version>4.7.0</newrelic.version>
@@ -40,11 +39,11 @@
 		</snapshotRepository>
 	</distributionManagement>
 
+
 	<parent>
-		<groupId>com.lfg.digital</groupId>
-		<artifactId>parent-pom-spring-boot</artifactId>
-		<version>2.0.6.RELEASE-BUILD6-878607</version>
-		<relativePath /> <!-- lookup parent from repository -->
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.0.6.RELEASE</version>
 	</parent>
 
 	<dependencies>
@@ -68,17 +67,17 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
+		<!-- <dependency>
 			<groupId>com.amazonaws</groupId>
 			<artifactId>aws-java-sdk</artifactId>
 			<version>1.11.440</version>
-		</dependency>
+		</dependency>-->
 		<dependency>
-			<groupId>com.newrelic.agent.java</groupId>
-			<artifactId>newrelic-agent</artifactId>
-			<version>${newrelic.version}</version>
-			<scope>provided</scope>
+			<groupId>joda-time</groupId>
+			<artifactId>joda-time</artifactId>
+			<version>2.9.9</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
@@ -86,7 +85,7 @@
 	</dependencies>
 
 	<build>
-		<finalName>aws-ses-enrollment-service</finalName>
+		<finalName>garmin-conversion-service</finalName>
 
 		<plugins>
 			<plugin>
@@ -103,27 +102,7 @@
 				</configuration>
 			</plugin>
 
-			<!-- Add NewRelic agent to src/main/docker/newrelic/ -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<version>${maven-dependency-plugin.version}</version>
-				<executions>
-					<execution>
-						<id>copy-new-relic</id>
-						<phase>prepare-package</phase>
-						<goals>
-							<goal>copy-dependencies</goal>
-						</goals>
-						<configuration>
-							<includeGroupIds>com.newrelic.agent.java</includeGroupIds>
-							<includeArtifactIds>newrelic-agent</includeArtifactIds>
-							<stripVersion>true</stripVersion>
-							<outputDirectory>src/main/docker/newrelic</outputDirectory>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
+
 
 			<plugin>
 				<groupId>com.spotify</groupId>
@@ -147,7 +126,7 @@
 				</dependencies>
 
 				<configuration>
-					<imageName>${docker.image.prefix}/${project.artifactId}:BUILD${bamboo_buildNumber}</imageName>
+					<imageName>gcr.io/garmin-conversion/${project.artifactId}:BUILD2</imageName>
 					<dockerDirectory>src/main/docker</dockerDirectory>
 					<resources>
 						<resource>

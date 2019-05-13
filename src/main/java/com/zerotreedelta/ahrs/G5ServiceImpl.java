@@ -27,8 +27,7 @@ public class G5ServiceImpl implements AHRSService {
 		AhrsData result = new AhrsData();
 
 		try {
-			g5File = ResourceUtils.getFile("classpath:g5.csv");
-
+			
 			DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss").withZoneUTC();
 
 			FileReader rdr = new FileReader(g5File);

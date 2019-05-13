@@ -8,7 +8,6 @@ import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -34,14 +33,9 @@ class DataAggregatorController {
 	@Autowired
 	TxiServiceImpl txiServiceImpl;
 
-    @GetMapping("/combine")
-    public String retrieveRegistrationStatus() {
-        LOG.debug("GET ");
-      
-        return "OK";
-    }
 
-	@PostMapping("/combinefile")
+
+	@PostMapping(value = "/combine", produces = "text/csv")
 	public String registerEmailAddresses(@RequestParam("file") MultipartFile file,
 			@RequestParam("localTzOffset") int localTzOffset, @RequestParam("startingFuel") int startingFuel,
 			@RequestParam("savvyFlight") String savvyFlight) {
