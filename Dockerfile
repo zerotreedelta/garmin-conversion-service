@@ -2,7 +2,7 @@ FROM maven:3.6.1-jdk-11 AS MAVEN_BUILD
 COPY pom.xml /tmp/
 COPY src /tmp/src/
 WORKDIR /tmp/
-RUN mvn package
+RUN mvn --no-transfer-progress package
 
 # /TODO likely grab a base image from ecr
 FROM openjdk:11-jdk
