@@ -1,7 +1,6 @@
 package com.zerotreedelta.txi;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -33,10 +32,7 @@ public class TxiServiceImpl implements FlyGarminService {
 	public String combine(AhrsData ahrs, EngineData engine, DateTimeZone zone, int startingFuel) {
 		StringBuilder result = new StringBuilder();
 		try {
-			InputStream resource = new ClassPathResource(
-				      "txi.csv").getInputStream();
-				    
-			DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss").withZoneUTC();
+			InputStream resource = new ClassPathResource("txi.csv").getInputStream();
 
 			BufferedReader templateReader = new BufferedReader(new InputStreamReader(resource));
 			result.append(templateReader.readLine() + "\n");
@@ -62,7 +58,9 @@ public class TxiServiceImpl implements FlyGarminService {
 				injectDateTime(outputRow, t, zone);
 				injectGenericData(outputRow, engineRow, ahrsRow);
 
-				injectDerivedData(outputRow, engineRow, ahrsRow, startingFuel);
+				injectTempData(outputRow, engineRow, ahrsRow);
+				injectFuelData(outputRow, engineRow, startingFuel);
+
 				clearColumns(outputRow);
 
 				result.append(String.join(",", outputRow) + "\n");
@@ -73,23 +71,21 @@ public class TxiServiceImpl implements FlyGarminService {
 		}
 		return result.toString();
 	}
-	
+
 	private void clearColumns(String[] txi) {
-		int[] toClear = {19,22,24,26,28,29,30,44,45,46,58, 62,63,64,65,66};
-		for(int col : toClear) {
+		int[] toClear = { 19, 22, 24, 26, 28, 29, 30, 44, 45, 46, 58, 62, 63, 64, 65, 66 };
+		for (int col : toClear) {
 			txi[col] = "";// date.print(t);
 		}
 
-		txi[3]="______";
+		txi[3] = "______";
 
 	}
-	
 
 	private void injectDateTime(String[] txi, DateTime t, DateTimeZone zone) {
 		DateTimeFormatter date = DateTimeFormat.forPattern("yyyy-MM-dd").withZone(zone);
 		DateTimeFormatter time = DateTimeFormat.forPattern("HH:mm:ss").withZone(zone);
 		DateTimeFormatter tz = DateTimeFormat.forPattern("ZZ").withZone(zone);
-
 
 		txi[0] = date.print(t);
 		txi[1] = time.print(t);
@@ -110,8 +106,7 @@ public class TxiServiceImpl implements FlyGarminService {
 		}
 	}
 
-	private void injectDerivedData(String[] txi, Map<String, String> engine, Map<String, String> ahrs,
-			double startingFuel) {
+	private void injectTempData(String[] txi, Map<String, String> engine, Map<String, String> ahrs) {
 		// OAT - F to C, #9
 
 		double tempF = Double.parseDouble(engine.get(EngineDataType.OAT.getJpi()));
@@ -122,7 +117,7 @@ public class TxiServiceImpl implements FlyGarminService {
 		Double baroAlt = Double.parseDouble(ahrs.get(AhrsDataType.BARO_ALT.getG5()));
 		Double baro = Double.parseDouble(ahrs.get(AhrsDataType.BARO.getG5()));
 		Double ias = Double.parseDouble(ahrs.get(AhrsDataType.IAS.getG5()));
-		
+
 		Double tas = calculateTAS(baro, baroAlt, oatC, ias);
 		txi[49] = String.format("%.0f", tas);
 
@@ -133,39 +128,39 @@ public class TxiServiceImpl implements FlyGarminService {
 			Double gs = Double.parseDouble(ahrs.get(AhrsDataType.GND_SPD.getG5()));
 			injectWind(th, tc, tas, gs, txi);
 		} catch (Exception e) {
-			
+			LOG.debug("Can't calculate winds");
 		}
-		
+	}
+
+	private void injectFuelData(String[] txi, Map<String, String> engine, double startingFuel) {
 		// Fuel - gals 21, lbs 23
 		double used = Double.parseDouble(engine.get(EngineDataType.FUEL_USED.getJpi()));
 		txi[21] = String.format("%.1f", startingFuel - used);
 		txi[22] = "0";
 		txi[23] = String.format("%.1f", (startingFuel - used) * 6);
 		txi[24] = "0";
-
 	}
-	
+
 	private void injectWind(Double th, Double tc, Double tas, Double gs, String[] txi) {
-		Double gsh = Math.sin(Math.toRadians((tc%360)))*gs; //Horizontal Portion of GS Vector
-		Double gsv = Math.cos(Math.toRadians((tc%360)))*gs; //Vertical Portion of GS Vector
-		Double tash = Math.sin(Math.toRadians(th%360))*tas; //Horizontal Portion of TAS Vector
-		Double tasv = Math.cos(Math.toRadians(th%360))*tas; //Vertical Portion of TAS Vector
-		Double deltaH = tash-gsh;  //Horizontal Vector Difference
-		Double deltaV = tasv-gsv; //Vertical Vector Difference
-		Double windSpeed = Math.sqrt((deltaH*deltaH) + (deltaV*deltaV)); //Pythagoream Theorem rounded
-		Double windDir=	Math.toDegrees(Math.atan(deltaH/deltaV))+(deltaV<0?180:0)%360;
+		Double gsh = Math.sin(Math.toRadians((tc % 360))) * gs; // Horizontal Portion of GS Vector
+		Double gsv = Math.cos(Math.toRadians((tc % 360))) * gs; // Vertical Portion of GS Vector
+		Double tash = Math.sin(Math.toRadians(th % 360)) * tas; // Horizontal Portion of TAS Vector
+		Double tasv = Math.cos(Math.toRadians(th % 360)) * tas; // Vertical Portion of TAS Vector
+		Double deltaH = tash - gsh; // Horizontal Vector Difference
+		Double deltaV = tasv - gsv; // Vertical Vector Difference
+		Double windSpeed = Math.sqrt((deltaH * deltaH) + (deltaV * deltaV)); // Pythagoream Theorem rounded
+		Double windDir = Math.toDegrees(Math.atan(deltaH / deltaV)) + (deltaV < 0 ? 180 : 0) % 360;
 		// Wind - Dir-57, Spd-56
 		txi[56] = String.format("%.0f", windSpeed);
 		txi[57] = String.format("%.0f", windDir);
 	}
 
 	private Double calculateTAS(Double baroSetting, Double indAlt, Double tempInC, Double ias) {
-		//Constants
+		// Constants
 		Double stdtemp0 = 288.15; // deg Kelvin
 		Double lapseRate = 0.0019812; // degrees / foot std. lapse rate C° in to K° result
 		Double tempCorr = 273.15; // deg Kelvin
 
-		
 		Double xx = baroSetting / 29.92126;
 		Double pressureAlt = indAlt + 145442.2 * (1 - Math.pow(xx, 0.190261));
 		Double stdtemp = stdtemp0 - pressureAlt * lapseRate;
@@ -188,7 +183,6 @@ public class TxiServiceImpl implements FlyGarminService {
 
 	public static void main(String... strings) throws IOException {
 
-		
 //		G5ServiceImpl imp = new G5ServiceImpl();
 //		AhrsData ahrs = imp.getSeries(null);
 //		JpiServiceImpl jpi = new JpiServiceImpl();
