@@ -1,0 +1,14 @@
+steps:
+  # build the container image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/garmin-conversion-service', '.']
+  
+  # push the container image to Container Registry
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/$PROJECT_ID/garmin-conversion-service']
+  
+  # Deploy container image to Cloud Run
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['beta', 'run', 'deploy', 'garmin-conversion-service', '--image', 'gcr.io/$PROJECT_ID/garmin-conversion-service', '--region', 'us-central1']
+images:
+- gcr.io/$PROJECT_ID/garmin-conversion-service
