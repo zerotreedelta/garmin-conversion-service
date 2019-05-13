@@ -1,13 +1,15 @@
 package com.zerotreedelta.txi;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.joda.time.DateTime;
@@ -23,13 +25,17 @@ import com.zerotreedelta.ahrs.AhrsData;
 import com.zerotreedelta.ahrs.AhrsDataType;
 import com.zerotreedelta.engine.EngineData;
 
+import net.iakovlev.timeshape.TimeZoneEngine;
+
 @Service
 public class TxiServiceImpl implements FlyGarminService {
 
 	private static Logger LOG = LoggerFactory.getLogger(TxiServiceImpl.class);
-
+	private static TimeZoneEngine tzEngine = TimeZoneEngine.initialize(15.8, -165.7, 71.0, -60.0);
+	
 	@Override
-	public String combine(AhrsData ahrs, EngineData engine, DateTimeZone zone, int startingFuel) {
+	public String combine(AhrsData ahrs, EngineData engine, int startingFuel) {
+		
 		StringBuilder result = new StringBuilder();
 		try {
 			InputStream resource = new ClassPathResource("txi.csv").getInputStream();
@@ -42,16 +48,13 @@ public class TxiServiceImpl implements FlyGarminService {
 			Set<DateTime> timeSet = engine.getData().keySet();
 			List<DateTime> orderedTime = new ArrayList<>(timeSet);
 			Collections.sort(orderedTime);
-//			for(DateTime d : orderedTime) {
-//				Map<String, String> ahrsRow = ahrs.getData().get(d);
-//				Map<String, String> engRow = engine.getData().get(d);
-//
-//				System.out.println(d + ": "+ ahrsRow.size() +" : "+ engRow.size());
-//				
-//			}
-
+			
+			DateTimeZone zone = findTimezone(ahrs, orderedTime);
+			
+			//just grab the first data line as a sample
+			String sampleTxiRow = templateReader.readLine();
 			for (DateTime t : orderedTime) {
-				String[] outputRow = templateReader.readLine().split(",");
+				String[] outputRow = sampleTxiRow.split(",");
 				Map<String, String> ahrsRow = ahrs.getData().get(t);
 				Map<String, String> engineRow = engine.getData().get(t);
 
@@ -70,6 +73,40 @@ public class TxiServiceImpl implements FlyGarminService {
 			e.printStackTrace();
 		}
 		return result.toString();
+	}
+	
+	private DateTimeZone findTimezone(AhrsData ahrs, List<DateTime> orderedTime) {
+		DateTimeZone result = DateTimeZone.UTC;
+
+		Map<ZoneId, Integer> count = new HashMap<>();
+		//just check first 400 for a sampling...some errors on GPS boot so can't choose first
+		for (int i=0; i<400; i++) {
+			DateTime t = orderedTime.get(i);
+			Map<String, String> ahrsRow = ahrs.getData().get(t);
+			String gps = ahrsRow.get(AhrsDataType.LATITUDE.getG5());
+			if(!gps.isEmpty()) {
+				Double lat = Double.parseDouble(ahrsRow.get(AhrsDataType.LATITUDE.getG5()));
+				Double lon = Double.parseDouble(ahrsRow.get(AhrsDataType.LONGITUDE.getG5()));
+				Optional<ZoneId> zoneGuess = tzEngine.query(lat, lon);
+				if(zoneGuess.isPresent()) {
+					ZoneId id = zoneGuess.get();
+					Integer tally = count.get(id)!=null?count.get(id):0;
+					tally = tally+1;
+					count.put(id, tally);
+				}
+			}
+		}
+		Integer maxValue = 0;
+		for(ZoneId zid : count.keySet()) {
+			Integer tally = count.get(zid);
+			if(tally>maxValue) {
+				result=DateTimeZone.forID(zid.getId());
+				maxValue=tally;
+			}
+		}
+		
+		return result;
+		
 	}
 
 	private void clearColumns(String[] txi) {
@@ -179,17 +216,6 @@ public class TxiServiceImpl implements FlyGarminService {
 //		  var cas = document.densalt.IAS.value;
 		Double ff = ee * ias;
 		return ff;
-	}
-
-	public static void main(String... strings) throws IOException {
-
-//		G5ServiceImpl imp = new G5ServiceImpl();
-//		AhrsData ahrs = imp.getSeries(null);
-//		JpiServiceImpl jpi = new JpiServiceImpl();
-//		EngineData engine = jpi.getEngineData("3163931/9f8a4ab8-a7a5-471b-8baa-970c578309a7");
-//
-//		TxiServiceImpl txi = new TxiServiceImpl();
-//		System.out.println(txi.combine(ahrs, engine));
 	}
 
 }

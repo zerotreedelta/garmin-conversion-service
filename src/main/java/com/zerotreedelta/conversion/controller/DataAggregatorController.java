@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
-import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +36,7 @@ class DataAggregatorController {
 
 	@PostMapping(value = "/combine", produces = "text/csv")
 	public String registerEmailAddresses(@RequestParam("file") MultipartFile file,
-			@RequestParam("localTzOffset") int localTzOffset, @RequestParam("startingFuel") int startingFuel,
+		    @RequestParam("startingFuel") int startingFuel,
 			@RequestParam("savvyFlight") String savvyFlight) {
 
 		LOG.debug("POST /combine");
@@ -50,7 +49,7 @@ class DataAggregatorController {
 
 			AhrsData ahrs = g5Service.getSeries(f);
 			EngineData engine = jpiService.getEngineData(savvyFlight);
-			response = txiServiceImpl.combine(ahrs, engine, DateTimeZone.forOffsetHours(localTzOffset), startingFuel);
+			response = txiServiceImpl.combine(ahrs, engine, startingFuel);
 			f.delete();
 		} catch (IOException e) {
 			e.printStackTrace();
