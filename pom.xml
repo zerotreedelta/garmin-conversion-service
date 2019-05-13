@@ -78,40 +78,7 @@
 				</configuration>
 			</plugin>
 
-			<plugin>
-				<groupId>com.spotify</groupId>
-				<artifactId>docker-maven-plugin</artifactId>
-				<version>1.2.0</version>
-
-				<executions>
-					<execution>
-						<goals>
-							<goal>build</goal>
-						</goals>
-					</execution>
-				</executions>
-
-				<dependencies>
-					<dependency>
-						<groupId>javax.activation</groupId>
-						<artifactId>activation</artifactId>
-						<version>1.1.1</version>
-					</dependency>
-				</dependencies>
-
-				<configuration>
-					<imageName>gcr.io/garmin-conversion/${project.artifactId}:BUILD2</imageName>
-					<dockerDirectory>src/main/docker</dockerDirectory>
-					<resources>
-						<resource>
-							<targetPath>/</targetPath>
-							<directory>${project.build.directory}</directory>
-							<include>${project.build.finalName}.jar</include>
-						</resource>
-					</resources>
-				</configuration>
-			</plugin>
-
+			
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
