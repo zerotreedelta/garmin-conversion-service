@@ -19,7 +19,7 @@ import com.zerotreedelta.engine.EngineData;
 import com.zerotreedelta.engine.JpiServiceImpl;
 import com.zerotreedelta.txi.TxiServiceImpl;
 
-@CrossOrigin
+@CrossOrigin(value = {"*"}, exposedHeaders = {"Content-Disposition"})
 @RestController
 class DataAggregatorController {
 
