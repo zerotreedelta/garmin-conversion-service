@@ -1,6 +1,8 @@
 package com.zerotreedelta.txi;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.time.ZoneId;
@@ -23,7 +25,9 @@ import org.springframework.stereotype.Service;
 
 import com.zerotreedelta.ahrs.AhrsData;
 import com.zerotreedelta.ahrs.AhrsDataType;
+import com.zerotreedelta.ahrs.G5ServiceImpl;
 import com.zerotreedelta.engine.EngineData;
+import com.zerotreedelta.engine.JpiServiceImpl;
 
 import net.iakovlev.timeshape.TimeZoneEngine;
 
@@ -59,10 +63,11 @@ public class TxiServiceImpl implements FlyGarminService {
 				Map<String, String> engineRow = engine.getData().get(t);
 
 				injectDateTime(outputRow, t, zone);
-				injectGenericData(outputRow, engineRow, ahrsRow);
-
-				injectTempData(outputRow, engineRow, ahrsRow);
 				injectFuelData(outputRow, engineRow, startingFuel);
+				if(ahrsRow!=null) {
+					injectGenericData(outputRow, engineRow, ahrsRow);
+					injectTempData(outputRow, engineRow, ahrsRow);
+				}
 
 				clearColumns(outputRow);
 
@@ -75,7 +80,7 @@ public class TxiServiceImpl implements FlyGarminService {
 		return result.toString();
 	}
 	
-	private DateTimeZone findTimezone(AhrsData ahrs, List<DateTime> orderedTime) {
+	public DateTimeZone findTimezone(AhrsData ahrs, List<DateTime> orderedTime) {
 		DateTimeZone result = DateTimeZone.UTC;
 
 		Map<ZoneId, Integer> count = new HashMap<>();
@@ -216,6 +221,20 @@ public class TxiServiceImpl implements FlyGarminService {
 //		  var cas = document.densalt.IAS.value;
 		Double ff = ee * ias;
 		return ff;
+	}
+	
+	
+	public static void main(String... strings) throws IOException {
+
+		JpiServiceImpl jpi = new JpiServiceImpl();
+		EngineData ed = jpi.getEngineData("3192990/c86cb650-f8c0-440e-97d9-24769cdc20f6");
+		
+		G5ServiceImpl imp = new G5ServiceImpl();
+		File f = new File("/home/miodo6/workspaces/personal/garmin-jpi/src/test/resources/g5.csv");
+		AhrsData data = imp.getSeries(f);
+		
+		TxiServiceImpl i = new TxiServiceImpl();
+		System.out.println(i.combine(data, ed, 54));
 	}
 
 }
