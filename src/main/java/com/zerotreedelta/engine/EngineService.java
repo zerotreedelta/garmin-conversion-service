@@ -2,6 +2,6 @@ package com.zerotreedelta.engine;
 
 public interface EngineService {
 
-	public EngineData getEngineData(String key);
+	public EngineData getEngineData(String key, int secondsOffset);
  
 }

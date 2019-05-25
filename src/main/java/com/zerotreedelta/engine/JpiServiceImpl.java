@@ -23,7 +23,7 @@ public class JpiServiceImpl implements EngineService {
 	private static Logger LOG = LoggerFactory.getLogger(JpiServiceImpl.class);
 
 	@Override
-	public EngineData getEngineData(String key) {
+	public EngineData getEngineData(String key, int secondsOffset) {
 		EngineData result = new EngineData();
 		EngineDataSeries timeSeries = getSeries(key, EngineDataType.TIME_UTC);
 		int intervalInSeconds = getIntervalInSeconds(timeSeries);
@@ -42,7 +42,7 @@ public class JpiServiceImpl implements EngineService {
 			long utc = Long.parseLong(time + "000");
 			DateTime dt = new DateTime(utc, DateTimeZone.forOffsetHours(-8));// .withZone();
 			DateTime utcTime = dt.withZoneRetainFields(DateTimeZone.UTC);
-			
+			utcTime=utcTime.plusSeconds(secondsOffset);
 			for (EngineDataType type : tempMap.keySet()) {
 				String value = tempMap.get(type).getData().get(i);
 				row.put(type.getJpi(), value);
@@ -90,11 +90,11 @@ public class JpiServiceImpl implements EngineService {
 
 	public static void main(String... strings) {
 
-		JpiServiceImpl imp = new JpiServiceImpl();
-
-		EngineData s = imp.getEngineData("3163931/9f8a4ab8-a7a5-471b-8baa-970c578309a7");
-
-		System.out.println("foo");
+//		JpiServiceImpl imp = new JpiServiceImpl();
+//
+//		EngineData s = imp.getEngineData("3163931/9f8a4ab8-a7a5-471b-8baa-970c578309a7");
+//
+//		System.out.println("foo");
 
 	}
 }

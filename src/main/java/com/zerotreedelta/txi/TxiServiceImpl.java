@@ -226,15 +226,15 @@ public class TxiServiceImpl implements FlyGarminService {
 	
 	public static void main(String... strings) throws IOException {
 
-		JpiServiceImpl jpi = new JpiServiceImpl();
-		EngineData ed = jpi.getEngineData("3192990/c86cb650-f8c0-440e-97d9-24769cdc20f6");
-		
-		G5ServiceImpl imp = new G5ServiceImpl();
-		File f = new File("/home/miodo6/workspaces/personal/garmin-jpi/src/test/resources/g5.csv");
-		AhrsData data = imp.getSeries(f);
-		
-		TxiServiceImpl i = new TxiServiceImpl();
-		System.out.println(i.combine(data, ed, 54));
+//		JpiServiceImpl jpi = new JpiServiceImpl();
+//		EngineData ed = jpi.getEngineData("3192990/c86cb650-f8c0-440e-97d9-24769cdc20f6");
+//		
+//		G5ServiceImpl imp = new G5ServiceImpl();
+//		File f = new File("/home/miodo6/workspaces/personal/garmin-jpi/src/test/resources/g5.csv");
+//		AhrsData data = imp.getSeries(f);
+//		
+//		TxiServiceImpl i = new TxiServiceImpl();
+//		System.out.println(i.combine(data, ed, 54));
 	}
 
 }

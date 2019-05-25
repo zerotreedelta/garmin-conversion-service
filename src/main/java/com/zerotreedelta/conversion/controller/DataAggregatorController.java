@@ -39,6 +39,7 @@ class DataAggregatorController {
 	@PostMapping(value = "/combine", produces = "text/csv")
 	public String registerEmailAddresses(@RequestParam("file") MultipartFile file,
 		    @RequestParam("startingFuel") int startingFuel,
+		    @RequestParam("jpiSecondsOffset") int jpiSecondsOffset,
 			@RequestParam("savvyFlight") String savvyFlight) {
 
 		LOG.debug("POST /combine");
@@ -50,7 +51,7 @@ class DataAggregatorController {
 			Files.write(f.toPath(), bytes);
 
 			AhrsData ahrs = g5Service.getSeries(f);
-			EngineData engine = jpiService.getEngineData(savvyFlight);
+			EngineData engine = jpiService.getEngineData(savvyFlight, jpiSecondsOffset);
 			response = txiServiceImpl.combine(ahrs, engine, startingFuel);
 			f.delete();
 		} catch (IOException e) {
