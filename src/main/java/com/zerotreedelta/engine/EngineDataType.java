@@ -16,7 +16,7 @@ public enum EngineDataType {
 	CHT6("CHT6"),
 	FF("FF"),
 	OAT("OAT"),
-	OIL_TEMP("OIL"),
+//	OIL_TEMP("OIL"),
 	FUEL_USED("USD"),
 	VOLTS("VOLTS");
 	
