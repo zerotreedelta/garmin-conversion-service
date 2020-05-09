@@ -88,7 +88,7 @@ public class TxiServiceImpl implements FlyGarminService {
 		for (int i=0; i<400; i++) {
 			DateTime t = orderedTime.get(i);
 			Map<String, String> ahrsRow = ahrs.getData().get(t);
-			String gps = ahrsRow.get(AhrsDataType.LATITUDE.getG5());
+			String gps = ahrsRow!=null?ahrsRow.get(AhrsDataType.LATITUDE.getG5()):"";
 			if(!gps.isEmpty()) {
 				Double lat = Double.parseDouble(ahrsRow.get(AhrsDataType.LATITUDE.getG5()));
 				Double lon = Double.parseDouble(ahrsRow.get(AhrsDataType.LONGITUDE.getG5()));
@@ -226,15 +226,15 @@ public class TxiServiceImpl implements FlyGarminService {
 	
 	public static void main(String... strings) throws IOException {
 
-//		JpiServiceImpl jpi = new JpiServiceImpl();
-//		EngineData ed = jpi.getEngineData("3192990/c86cb650-f8c0-440e-97d9-24769cdc20f6");
-//		
-//		G5ServiceImpl imp = new G5ServiceImpl();
-//		File f = new File("/home/miodo6/workspaces/personal/garmin-jpi/src/test/resources/g5.csv");
-//		AhrsData data = imp.getSeries(f);
-//		
-//		TxiServiceImpl i = new TxiServiceImpl();
-//		System.out.println(i.combine(data, ed, 54));
+		JpiServiceImpl jpi = new JpiServiceImpl();
+		EngineData ed = jpi.getEngineData("3892772/17d4cec1-72c6-4fe7-a558-28b079d2e0f9", 204);
+		
+		G5ServiceImpl imp = new G5ServiceImpl();
+		File f = new File("/home/dodgemich/workspaces/personal/garmin-conversion-service/src/test/resources/g6.csv");
+		AhrsData data = imp.getSeries(f);
+		
+		TxiServiceImpl i = new TxiServiceImpl();
+		System.out.println(i.combine(data, ed, 54));
 	}
 
 }

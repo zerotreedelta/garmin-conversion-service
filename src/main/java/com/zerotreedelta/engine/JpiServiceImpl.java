@@ -72,7 +72,7 @@ public class JpiServiceImpl implements EngineService {
 		restTemplate.setMessageConverters(messageConverters);
 
 		EngineDataSeries series = restTemplate.getForObject(
-				"https://savvyanalysis.com/flight_data/" + key + "?left=" + type.getJpi(), EngineDataSeries.class);
+				"https://apps.savvyaviation.com/flights/" + key + "/json?left=" + type.getJpi(), EngineDataSeries.class);
 		series.setType(type);
 		return series;
 
