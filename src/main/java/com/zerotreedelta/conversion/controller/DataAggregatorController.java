@@ -17,7 +17,8 @@ import com.zerotreedelta.ahrs.AhrsData;
 import com.zerotreedelta.ahrs.G5ServiceImpl;
 import com.zerotreedelta.engine.EngineData;
 import com.zerotreedelta.engine.JpiServiceImpl;
-import com.zerotreedelta.txi.TxiServiceImpl;
+import com.zerotreedelta.txi.DerivedData;
+import com.zerotreedelta.txi.G3xServiceImpl;
 
 @CrossOrigin(value = {"*"}, exposedHeaders = {"Content-Disposition"})
 @RestController
@@ -32,12 +33,12 @@ class DataAggregatorController {
 	G5ServiceImpl g5Service;
 	
 	@Autowired
-	TxiServiceImpl txiServiceImpl;
+	G3xServiceImpl g3xServiceImpl;
 
 
 	
 	@PostMapping(value = "/combine", produces = "text/csv")
-	public String registerEmailAddresses(@RequestParam("file") MultipartFile file,
+	public String combine(@RequestParam("file") MultipartFile file,
 		    @RequestParam(value="startingFuel", required=false, defaultValue = "100") Integer startingFuel,
 		    @RequestParam(value="jpiSecondsOffset", required=false, defaultValue = "0") Integer jpiSecondsOffset,
 			@RequestParam("savvyFlight") String savvyFlight) {
@@ -52,7 +53,8 @@ class DataAggregatorController {
 
 			AhrsData ahrs = g5Service.getSeries(f);
 			EngineData engine = jpiService.getEngineData(savvyFlight, jpiSecondsOffset);
-			response = txiServiceImpl.combine(ahrs, engine, startingFuel);
+			DerivedData derived = g3xServiceImpl.derive(ahrs, engine, startingFuel);
+			response = g5Service.combine(ahrs, derived);
 			f.delete();
 		} catch (IOException e) {
 			e.printStackTrace();

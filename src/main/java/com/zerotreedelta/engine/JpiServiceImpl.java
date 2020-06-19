@@ -45,7 +45,7 @@ public class JpiServiceImpl implements EngineService {
 			utcTime=utcTime.plusSeconds(secondsOffset);
 			for (EngineDataType type : tempMap.keySet()) {
 				String value = tempMap.get(type).getData().get(i);
-				row.put(type.getJpi(), value);
+				row.put(type.getGarmin(), value);
 			}
 //			result.getData().put(utcTime, row);
 			for (int x = 0; x < intervalInSeconds; x++) {
