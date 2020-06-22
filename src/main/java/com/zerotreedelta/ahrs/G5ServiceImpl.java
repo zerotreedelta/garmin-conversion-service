@@ -69,7 +69,7 @@ public class G5ServiceImpl implements AHRSService {
 		
 	
 		
-		Set<DateTime> timeSet = ahrs.getData().keySet();
+		Set<DateTime> timeSet = derived.getData().keySet();
 		List<DateTime> orderedTime = new ArrayList<>(timeSet);
 		Collections.sort(orderedTime);
 		
