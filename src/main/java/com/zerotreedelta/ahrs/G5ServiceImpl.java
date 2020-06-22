@@ -81,7 +81,7 @@ public class G5ServiceImpl implements AHRSService {
 		for (DateTime t : orderedTime) {
 			Map<String, String> g5Row = ahrs.getData().get(t);
 			Map<String, String> derivedRow = derived.getData().get(t);
-			if(derivedRow!=null) {
+			if(derivedRow!=null && g5Row !=null) {
 				for(String key: derivedRow.keySet()) {
 					if(!"UTC Time".equals(key) && !"USD".equals(key)) {
 						g5Row.put(key, derivedRow.get(key));
@@ -102,12 +102,14 @@ public class G5ServiceImpl implements AHRSService {
 		
 		for (DateTime t : orderedTime) {
 			Map<String, String> dataMap = ahrs.getData().get(t);
-			List<String> row = new ArrayList<String>();
-			for(String key : orderedHeaders) {
-				String val = dataMap.get(key);
-				row.add(val!=null?val:"");
+			if(dataMap!=null) {
+				List<String> row = new ArrayList<String>();
+				for(String key : orderedHeaders) {
+					String val = dataMap.get(key);
+					row.add(val!=null?val:"");
+				}
+				result.append(String.join(",", row)+"\n");
 			}
-			result.append(String.join(",", row)+"\n");
 		}
 		return result.toString();
 		
@@ -117,10 +119,10 @@ public class G5ServiceImpl implements AHRSService {
 
 
 		JpiServiceImpl jpi = new JpiServiceImpl();
-		EngineData ed = jpi.getEngineData("4052631/f182ec4e-8814-4991-b1ee-bc16d37ad99a", 0);
+		EngineData ed = jpi.getEngineData("4049287/b47f95b5-ca06-43f5-a729-2902fc740a20", 190);
 		
 		G5ServiceImpl imp = new G5ServiceImpl();
-		File f = new File("/home/dodgemich/workspaces/personal/garmin-conversion-service/src/test/resources/DATA_LOG.CSV");
+		File f = new File("/home/dodgemich/workspaces/personal/garmin-conversion-service/src/test/resources/DATA_LOG_orig.CSV");
 		AhrsData data = imp.getSeries(f);
 		
 		G3xServiceImpl i = new G3xServiceImpl();
