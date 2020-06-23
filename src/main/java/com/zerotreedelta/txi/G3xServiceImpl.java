@@ -104,34 +104,35 @@ public class G3xServiceImpl implements FlyGarminService {
 
 	private void injectTempData(Map<String, String> derived, Map<String, String> engine, Map<String, String> ahrs) {
 		// OAT - F to C, #9
-		double tempF = Double.parseDouble(engine.get(EngineDataType.OAT.getJpi()));
-		double oatC = (tempF - 32) * (0.555);
-		String oatCString = String.format("%.1f", oatC);
-		derived.put(OAT, oatCString);
-		String oatFString = String.format("%d", (int)(tempF));
-		derived.put("Nav Identifier", oatFString+'\u00B0'+" F");
-		
-		// TAS - OAT+IAS, 49
-		Double baroAlt = Double.parseDouble(ahrs.get(AhrsDataType.BARO_ALT.getG5()));
-		Double baro = Double.parseDouble(ahrs.get(AhrsDataType.BARO.getG5()));
-		Double ias = Double.parseDouble(ahrs.get(AhrsDataType.IAS.getG5()));
-
-		Double tas = calculateTAS(baro, baroAlt, oatC, ias);
-		String trueair = String.format("%.0f", tas);
-		derived.put(TAS, trueair);
-
-		
-		Double densAlt = calculateDensityAlt(baro, baroAlt, oatC, ias);
-		String da = String.format("%f", densAlt);
-		derived.put(DENSITY_ALTITUDE, da);
-		// Wind - Dir-57, Spd-56
 		try {
+			double tempF = Double.parseDouble(engine.get(EngineDataType.OAT.getJpi()));
+			double oatC = (tempF - 32) * (0.555);
+			String oatCString = String.format("%.1f", oatC);
+			derived.put(OAT, oatCString);
+			String oatFString = String.format("%d", (int)(tempF));
+			derived.put("Nav Identifier", oatFString+'\u00B0'+" F");
+			
+			// TAS - OAT+IAS, 49
+			Double baroAlt = Double.parseDouble(ahrs.get(AhrsDataType.BARO_ALT.getG5()));
+			Double baro = Double.parseDouble(ahrs.get(AhrsDataType.BARO.getG5()));
+			Double ias = Double.parseDouble(ahrs.get(AhrsDataType.IAS.getG5()));
+	
+			Double tas = calculateTAS(baro, baroAlt, oatC, ias);
+			String trueair = String.format("%.0f", tas);
+			derived.put(TAS, trueair);
+	
+			
+			Double densAlt = calculateDensityAlt(baro, baroAlt, oatC, ias);
+			String da = String.format("%f", densAlt);
+			derived.put(DENSITY_ALTITUDE, da);
+			// Wind - Dir-57, Spd-56
 			Double th = Double.parseDouble(ahrs.get(AhrsDataType.HDG.getG5()));
 			Double tc = Double.parseDouble(ahrs.get(AhrsDataType.TRK.getG5()));
 			Double gs = Double.parseDouble(ahrs.get(AhrsDataType.GND_SPD.getG5()));
 			injectWind(th, tc, tas, gs, derived);
 		} catch (Exception e) {
-			LOG.debug("Can't calculate winds");
+			LOG.debug("Can't calculate winds/temp");
+		
 		}
 	}
 
