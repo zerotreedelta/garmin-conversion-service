@@ -2,7 +2,7 @@
 logging:
   level:
     root: WARN
-    com.zerotreedelta: INFO
+    com.zerotreedelta: DEBUG
     org:
       springframework:
         jdbc: INFO
