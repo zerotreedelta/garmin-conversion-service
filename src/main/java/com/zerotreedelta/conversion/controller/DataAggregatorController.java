@@ -60,7 +60,7 @@ class DataAggregatorController {
 				DateTime jpiEstimated = jpiService.findTakeoffTime(engine);
 				DateTime g5Estimated = g5Service.findEstimatedTakeoff(ahrs, jpiEstimated);
 				
-				secondsOffset = (int)((g5Estimated.getMillis())/1000-jpiEstimated.getMillis());
+				secondsOffset = (int)(  (g5Estimated.getMillis()-jpiEstimated.getMillis())/1000  );
 				LOG.debug("Estimated correction: "  + secondsOffset);
 				LOG.debug("JPI:"+jpiEstimated);
 				LOG.debug("G5 estimated: " + g5Estimated);
