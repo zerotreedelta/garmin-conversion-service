@@ -145,7 +145,7 @@ public class G3xServiceImpl implements FlyGarminService {
 			Double gs = Double.parseDouble(ahrs.get(AhrsDataType.GND_SPD.getG5()));
 			injectWind(th, tc, tas, gs, derived);
 		} catch (Exception e) {
-			LOG.debug("Can't calculate winds/temp");
+			LOG.debug("Can't calculate winds/temp", e);
 		
 		}
 	}

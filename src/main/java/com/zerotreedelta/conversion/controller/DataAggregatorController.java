@@ -44,7 +44,7 @@ class DataAggregatorController {
 		    @RequestParam(value="jpiSecondsOffset", required=false) Integer jpiSecondsOffset,
 			@RequestParam("savvyFlight") String savvyFlight) {
 
-		LOG.debug("POST /combine");
+		LOG.info("POST /combine");
 		String response = "";
 		try {
 			// Get the file and save it somewhere
@@ -56,16 +56,16 @@ class DataAggregatorController {
 			AhrsData ahrs = g5Service.getSeries(f);
 			Integer secondsOffset = jpiSecondsOffset;
 			if(secondsOffset==null) {
-				LOG.debug("auto calc of adjustment");
+				LOG.info("auto calc of adjustment");
 				DateTime jpiEstimated = jpiService.findTakeoffTime(engine);
 				DateTime g5Estimated = g5Service.findEstimatedTakeoff(ahrs, jpiEstimated);
 				
 				secondsOffset = (int)(  (g5Estimated.getMillis()-jpiEstimated.getMillis())/1000  );
-				LOG.debug("Estimated correction: "  + secondsOffset);
-				LOG.debug("JPI:"+jpiEstimated);
-				LOG.debug("G5 estimated: " + g5Estimated);
+				LOG.info("Estimated correction: "  + secondsOffset);
+				LOG.info("JPI:"+jpiEstimated);
+				LOG.info("G5 estimated: " + g5Estimated);
 			} else {
-				LOG.debug("Using offset:" + jpiSecondsOffset);
+				LOG.info("Using offset:" + jpiSecondsOffset);
 			}
 			
 			DerivedData derived = g3xServiceImpl.derive(ahrs, engine, startingFuel, secondsOffset);
