@@ -2,7 +2,7 @@
 logging:
   level:
     root: WARN
-    com.lfg.digital.digitools: INFO
+    com.zerotreedelta: INFO
     org:
       springframework:
         jdbc: INFO
