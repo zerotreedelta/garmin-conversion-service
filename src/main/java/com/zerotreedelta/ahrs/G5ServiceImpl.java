@@ -59,8 +59,36 @@ public class G5ServiceImpl implements AHRSService {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
+		
 		return result;
+	}
+	
+	@Override
+	public DateTime findEstimatedTakeoff(AhrsData ahrs, DateTime jpiEstimated) {
+		Set<DateTime> timeSet = ahrs.getData().keySet();
+		List<DateTime> orderedTime = new ArrayList<>(timeSet);
+		Collections.sort(orderedTime);
+		Collections.reverse(orderedTime);
+		
+		DateTime startingPoint = jpiEstimated.plusMinutes(5);
+		int startingIndex = orderedTime.indexOf(startingPoint);
+		
+		boolean foundHighIAS = false;
+		for (int i = startingIndex; i<orderedTime.size(); i++) {
+			Map<String, String> g5Row = ahrs.getData().get(orderedTime.get(i));
+			String ias = g5Row.get(AhrsDataType.IAS.getG5());
+			if(ias!=null && !ias.isEmpty()) {
+				Double iasDbl = Double.parseDouble(ias);
+				if(!foundHighIAS && iasDbl>80) {
+					foundHighIAS=true;
+				}
+				if(foundHighIAS && iasDbl<15.0) {
+					return orderedTime.get(i);
+				}
+			}
+		}
+		return null;	
+		
 	}
 	
 	
@@ -118,16 +146,22 @@ public class G5ServiceImpl implements AHRSService {
 	public static void main(String... strings) throws IOException {
 
 
-		JpiServiceImpl jpi = new JpiServiceImpl();
-		EngineData ed = jpi.getEngineData("4049287/b47f95b5-ca06-43f5-a729-2902fc740a20", 190);
+		JpiServiceImpl jpiService = new JpiServiceImpl();
+		EngineData engine = jpiService.getEngineData("4049287/b47f95b5-ca06-43f5-a729-2902fc740a20");
 		
-		G5ServiceImpl imp = new G5ServiceImpl();
+		G5ServiceImpl g5Service = new G5ServiceImpl();
 		File f = new File("/home/dodgemich/workspaces/personal/garmin-conversion-service/src/test/resources/DATA_LOG_orig.CSV");
-		AhrsData data = imp.getSeries(f);
+		AhrsData ahrs = g5Service.getSeries(f);
+
+		DateTime jpiEstimated = jpiService.findTakeoffTime(engine);
+		DateTime g5Takeoff = g5Service.findEstimatedTakeoff(ahrs, jpiEstimated);
+		
+		int secondsOffset = (int)((g5Takeoff.getMillis()-jpiEstimated.getMillis())/1000);
+		
 		
 		G3xServiceImpl i = new G3xServiceImpl();
-		DerivedData der = i.derive(data, ed, 54);
+		DerivedData der = i.derive(ahrs, engine, 54, secondsOffset);
 		
-		System.out.println(imp.combine(data, der));
+		System.out.println(g5Service.combine(ahrs, der));
 	}
 }

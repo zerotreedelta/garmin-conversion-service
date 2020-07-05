@@ -1,7 +1,5 @@
 package com.zerotreedelta.txi;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -16,10 +14,8 @@ import org.springframework.stereotype.Service;
 
 import com.zerotreedelta.ahrs.AhrsData;
 import com.zerotreedelta.ahrs.AhrsDataType;
-import com.zerotreedelta.ahrs.G5ServiceImpl;
 import com.zerotreedelta.engine.EngineData;
 import com.zerotreedelta.engine.EngineDataType;
-import com.zerotreedelta.engine.JpiServiceImpl;
 
 @Service
 public class G3xServiceImpl implements FlyGarminService {
@@ -38,8 +34,10 @@ public class G3xServiceImpl implements FlyGarminService {
 	private static Logger LOG = LoggerFactory.getLogger(G3xServiceImpl.class);
 	
 	@Override
-	public DerivedData derive(AhrsData ahrs, EngineData engine, int startingFuel) {
+	public DerivedData derive(AhrsData ahrs, EngineData engineOrig, int startingFuel, int secondsOffset) {
 		
+		
+		EngineData engine = adjust(engineOrig, secondsOffset);
 		DerivedData result = new DerivedData();
 		try {
 			Set<DateTime> timeSet = engine.getData().keySet();
@@ -47,9 +45,11 @@ public class G3xServiceImpl implements FlyGarminService {
 			Collections.sort(orderedTime);
 			
 			for (DateTime t : orderedTime) {
+
 				Map<String, String> derivedRow = new HashMap<String, String>();
 
 				Map<String, String> ahrsRow = ahrs.getData().get(t);
+				
 				Map<String, String> engineRow = engine.getData().get(t);
 
 				injectFuelData(derivedRow, engineRow, startingFuel);
@@ -69,6 +69,20 @@ public class G3xServiceImpl implements FlyGarminService {
 		return result;
 	}
 	
+	
+	private EngineData adjust(EngineData engine, int secondsOffset) {
+		Set<DateTime> timeSet = engine.getData().keySet();
+		List<DateTime> orderedTime = new ArrayList<>(timeSet);
+		Collections.sort(orderedTime);
+		EngineData result = new EngineData();
+		Map<DateTime, Map<String, String>> resultMap = new HashMap<DateTime, Map<String,String>>();
+		result.setData(resultMap);
+		for (DateTime t : orderedTime) {
+			DateTime adjustedDateTime = t.plusSeconds(secondsOffset);
+			resultMap.put(adjustedDateTime, engine.getData().get(t));
+		}
+		return result;
+	}
 	
 
 //	private void clearColumns(String[] txi) {
@@ -207,17 +221,17 @@ public class G3xServiceImpl implements FlyGarminService {
 	}
 	
 	
-	public static void main(String... strings) throws IOException {
-
-		JpiServiceImpl jpi = new JpiServiceImpl();
-		EngineData ed = jpi.getEngineData("4034913/681541e3-13b4-4778-98b9-8ae89e2dd195", 190);
-		
-		G5ServiceImpl imp = new G5ServiceImpl();
-		File f = new File("/home/dodgemich/workspaces/personal/garmin-conversion-service/src/test/resources/data.csv");
-		AhrsData data = imp.getSeries(f);
-		
-		G3xServiceImpl i = new G3xServiceImpl();
-		System.out.println(i.derive(data, ed, 54));
-	}
+//	public static void main(String... strings) throws IOException {
+//
+//		JpiServiceImpl jpi = new JpiServiceImpl();
+//		EngineData ed = jpi.getEngineData("4034913/681541e3-13b4-4778-98b9-8ae89e2dd195");
+//		
+//		G5ServiceImpl imp = new G5ServiceImpl();
+//		File f = new File("/home/dodgemich/workspaces/personal/garmin-conversion-service/src/test/resources/data.csv");
+//		AhrsData data = imp.getSeries(f);
+//		
+//		G3xServiceImpl i = new G3xServiceImpl();
+//		System.out.println(i.derive(data, ed, 54, 0));
+//	}
 
 }

@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -23,13 +24,13 @@ public class JpiServiceImpl implements EngineService {
 	private static Logger LOG = LoggerFactory.getLogger(JpiServiceImpl.class);
 
 	@Override
-	public EngineData getEngineData(String key, int secondsOffset) {
+	public EngineData getEngineData(String key) {
 		EngineData result = new EngineData();
 		EngineDataSeries timeSeries = getSeries(key, EngineDataType.TIME_UTC);
 		int intervalInSeconds = getIntervalInSeconds(timeSeries);
 		
 		Map<EngineDataType, EngineDataSeries> tempMap = new HashMap<>();
-		
+				
 		for (EngineDataType type : EngineDataType.values()) {
 			EngineDataSeries s = getSeries(key, type);
 			tempMap.put(type, s);
@@ -42,22 +43,50 @@ public class JpiServiceImpl implements EngineService {
 			long utc = Long.parseLong(time + "000");
 			DateTime dt = new DateTime(utc, DateTimeZone.forOffsetHours(-8));// .withZone();
 			DateTime utcTime = dt.withZoneRetainFields(DateTimeZone.UTC);
-			utcTime=utcTime.plusSeconds(secondsOffset);
+			//utcTime=utcTime.plusSeconds(secondsOffset);
 			for (EngineDataType type : tempMap.keySet()) {
 				String value = tempMap.get(type).getData().get(i);
 				row.put(type.getGarmin(), value);
 			}
-//			result.getData().put(utcTime, row);
+
 			for (int x = 0; x < intervalInSeconds; x++) {
 				DateTime incrementedTime = utcTime.plusSeconds(x);
 				result.getData().put(incrementedTime, row);
 			}
 			
 		}
-		
+
 		return result;
 	}
 
+	@Override
+	public DateTime findTakeoffTime(EngineData engine) {
+		Set<DateTime> timeSet = engine.getData().keySet();
+		List<DateTime> orderedTime = new ArrayList<>(timeSet);
+		Collections.sort(orderedTime);
+		
+		List<DateTime> timeBeforeTakeoff = new ArrayList<>();
+
+		for (DateTime t : orderedTime) {
+			Map<String, String> engineRow = engine.getData().get(t);
+			Double ff = Double.parseDouble(engineRow.get(EngineDataType.FF.getGarmin()));
+			timeBeforeTakeoff.add(t);
+			if(ff>20.0) {
+				break;
+			}
+		}
+		
+		Collections.reverse(timeBeforeTakeoff);
+		for (DateTime t : timeBeforeTakeoff) {
+			Map<String, String> engineRow = engine.getData().get(t);
+			Double ff = Double.parseDouble(engineRow.get(EngineDataType.FF.getGarmin()));
+			if(ff<6.0) {
+				return t;
+			}
+		}
+		return null;
+		
+	}
 	
 	private EngineDataSeries getSeries(String key, EngineDataType type) {
 		RestTemplate restTemplate = new RestTemplate();

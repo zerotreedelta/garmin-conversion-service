@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +41,7 @@ class DataAggregatorController {
 	@PostMapping(value = "/combine", produces = "text/csv")
 	public String combine(@RequestParam("file") MultipartFile file,
 		    @RequestParam(value="startingFuel", required=false, defaultValue = "100") Integer startingFuel,
-		    @RequestParam(value="jpiSecondsOffset", required=false, defaultValue = "0") Integer jpiSecondsOffset,
+		    @RequestParam(value="jpiSecondsOffset", required=false) Integer jpiSecondsOffset,
 			@RequestParam("savvyFlight") String savvyFlight) {
 
 		LOG.debug("POST /combine");
@@ -51,9 +52,23 @@ class DataAggregatorController {
 			File f = File.createTempFile("g5upload", "csv");
 			Files.write(f.toPath(), bytes);
 
+			EngineData engine = jpiService.getEngineData(savvyFlight);
 			AhrsData ahrs = g5Service.getSeries(f);
-			EngineData engine = jpiService.getEngineData(savvyFlight, jpiSecondsOffset);
-			DerivedData derived = g3xServiceImpl.derive(ahrs, engine, startingFuel);
+			Integer secondsOffset = jpiSecondsOffset;
+			if(secondsOffset==null) {
+				LOG.debug("auto calc of adjustment");
+				DateTime jpiEstimated = jpiService.findTakeoffTime(engine);
+				DateTime g5Estimated = g5Service.findEstimatedTakeoff(ahrs, jpiEstimated);
+				
+				secondsOffset = (int)((g5Estimated.getMillis())/1000-jpiEstimated.getMillis());
+				LOG.debug("Estimated correction: "  + secondsOffset);
+				LOG.debug("JPI:"+jpiEstimated);
+				LOG.debug("G5 estimated: " + g5Estimated);
+			} else {
+				LOG.debug("Using offset:" + jpiSecondsOffset);
+			}
+			
+			DerivedData derived = g3xServiceImpl.derive(ahrs, engine, startingFuel, secondsOffset);
 			response = g5Service.combine(ahrs, derived);
 			f.delete();
 		} catch (IOException e) {
@@ -62,5 +77,24 @@ class DataAggregatorController {
 
 		return response;
 	}
+	
+	
+	
+//	public static void main(String... strings) throws IOException {
+//
+//		DataAggregatorController cont = new DataAggregatorController();
+//		File f = new File("/home/dodgemich/workspaces/personal/garmin-conversion-service/src/test/resources/DATA_LOG_orig.CSV");
+//		cont.combine(f, 54, "", "4049287/b47f95b5-ca06-43f5-a729-2902fc740a20");
+//		JpiServiceImpl jpi = new JpiServiceImpl();
+//		EngineData ed = jpi.getEngineData();
+//		
+//		G5ServiceImpl imp = new G5ServiceImpl();
+//		AhrsData data = imp.getSeries(f);
+//		
+//		G3xServiceImpl i = new G3xServiceImpl();
+//		DerivedData der = i.derive(data, ed, 54);
+//		
+//		System.out.println(imp.combine(data, der));
+//	}
 
 }

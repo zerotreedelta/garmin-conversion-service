@@ -5,6 +5,6 @@ import com.zerotreedelta.engine.EngineData;
 
 public interface FlyGarminService {
 
-	public DerivedData derive(AhrsData ahrs, EngineData engine, int startingFuel);
+	public DerivedData derive(AhrsData ahrs, EngineData engine, int startingFuel, int secondsOffset);
  
 }
