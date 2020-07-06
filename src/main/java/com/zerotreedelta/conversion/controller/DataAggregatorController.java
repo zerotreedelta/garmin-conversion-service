@@ -46,6 +46,20 @@ class DataAggregatorController {
 
 		LOG.info("POST /combine");
 		String response = "";
+		if(savvyFlight!=null && !savvyFlight.isEmpty()) {
+			response = combineWithJPI(file, startingFuel, jpiSecondsOffset, savvyFlight);
+		} else {
+			LOG.info("G5 info only");
+			response = extendG5Only(file);
+		}
+
+		return response;
+	}
+
+
+
+	private String combineWithJPI(MultipartFile file, Integer startingFuel, Integer jpiSecondsOffset, String savvyFlight) {
+		String response = "";
 		try {
 			// Get the file and save it somewhere
 			byte[] bytes = file.getBytes();
@@ -74,10 +88,27 @@ class DataAggregatorController {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
 		return response;
 	}
 	
+	private String extendG5Only(MultipartFile file) {
+		String response = "";
+		try {
+			// Get the file and save it somewhere
+			byte[] bytes = file.getBytes();
+			File f = File.createTempFile("g5upload", "csv");
+			Files.write(f.toPath(), bytes);
+
+			AhrsData ahrs = g5Service.getSeries(f);
+
+			DerivedData derived = g3xServiceImpl.derive(ahrs);
+			response = g5Service.combine(ahrs, derived);
+			f.delete();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return response;
+	}	
 	
 	
 //	public static void main(String... strings) throws IOException {

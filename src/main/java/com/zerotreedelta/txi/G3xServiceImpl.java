@@ -70,6 +70,34 @@ public class G3xServiceImpl implements FlyGarminService {
 	}
 	
 	
+	@Override
+	public DerivedData derive(AhrsData ahrs) {
+		DerivedData result = new DerivedData();
+		try {
+			Set<DateTime> timeSet = ahrs.getData().keySet();
+			List<DateTime> orderedTime = new ArrayList<>(timeSet);
+			Collections.sort(orderedTime);
+			
+			for (DateTime t : orderedTime) {
+
+				Map<String, String> derivedRow = new HashMap<String, String>();
+
+				Map<String, String> ahrsRow = ahrs.getData().get(t);
+
+				injectConfidenceData(derivedRow, ahrsRow);
+
+				result.getData().put(t, derivedRow);
+//				result.append(String.join(",", outputRow) + "\n");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+		
+		
+	
 	private EngineData adjust(EngineData engine, int secondsOffset) {
 		Set<DateTime> timeSet = engine.getData().keySet();
 		List<DateTime> orderedTime = new ArrayList<>(timeSet);
