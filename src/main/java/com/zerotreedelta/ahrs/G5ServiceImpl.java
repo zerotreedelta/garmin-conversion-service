@@ -74,7 +74,7 @@ public class G5ServiceImpl implements AHRSService {
 		int startingIndex = orderedTime.indexOf(startingPoint);
 		
 		boolean foundHighIAS = false;
-		for (int i = startingIndex; i<orderedTime.size(); i++) {
+		for (int i = startingIndex; i>=0; i--) {
 			Map<String, String> g5Row = ahrs.getData().get(orderedTime.get(i));
 			String ias = g5Row.get(AhrsDataType.IAS.getG5());
 			if(ias!=null && !ias.isEmpty()) {
