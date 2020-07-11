@@ -74,7 +74,7 @@ public class G5ServiceImpl implements AHRSService {
 		int startingIndex = orderedTime.indexOf(startingPoint);
 		
 		boolean foundHighIAS = false;
-		for (int i = startingIndex; i>=0; i--) {
+		for (int i = startingIndex; i<orderedTime.size(); i++) {
 			Map<String, String> g5Row = ahrs.getData().get(orderedTime.get(i));
 			String ias = g5Row.get(AhrsDataType.IAS.getG5());
 			if(ias!=null && !ias.isEmpty()) {
@@ -147,16 +147,16 @@ public class G5ServiceImpl implements AHRSService {
 
 
 		JpiServiceImpl jpiService = new JpiServiceImpl();
-		EngineData engine = jpiService.getEngineData("4049287/b47f95b5-ca06-43f5-a729-2902fc740a20");
+		EngineData engine = jpiService.getEngineData("4138121/6432fa8a-87c9-473d-a4a4-c436fbe2749a");
 		
 		G5ServiceImpl g5Service = new G5ServiceImpl();
-		File f = new File("/home/dodgemich/workspaces/personal/garmin-conversion-service/src/test/resources/DATA_LOG_orig.CSV");
+		File f = new File("/home/dodgemich/workspaces/personal/garmin-conversion-service/src/test/resources/eight.csv");
 		AhrsData ahrs = g5Service.getSeries(f);
 
-		DateTime jpiEstimated = jpiService.findTakeoffTime(engine);
-		DateTime g5Takeoff = g5Service.findEstimatedTakeoff(ahrs, jpiEstimated);
+		//DateTime jpiEstimated = jpiService.findTakeoffTime(engine);
+		//DateTime g5Takeoff = g5Service.findEstimatedTakeoff(ahrs, jpiEstimated);
 		
-		int secondsOffset = (int)((g5Takeoff.getMillis()-jpiEstimated.getMillis())/1000);
+		int secondsOffset = 28800;///(int)((g5Takeoff.getMillis()-jpiEstimated.getMillis())/1000);
 		
 		
 		G3xServiceImpl i = new G3xServiceImpl();
