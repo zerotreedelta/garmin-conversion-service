@@ -41,7 +41,7 @@ public class JpiServiceImpl implements EngineService {
 			
 			String time = timeSeries.getData().get(i);
 			long utc = Long.parseLong(time + "000");
-			DateTime dt = new DateTime(utc, DateTimeZone.forOffsetHours(-8));// .withZone();
+			DateTime dt = new DateTime(utc, DateTimeZone.forOffsetHours(0));// .withZone();
 			DateTime utcTime = dt.withZoneRetainFields(DateTimeZone.UTC);
 			//utcTime=utcTime.plusSeconds(secondsOffset);
 			for (EngineDataType type : tempMap.keySet()) {
