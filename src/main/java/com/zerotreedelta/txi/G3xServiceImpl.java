@@ -55,7 +55,7 @@ public class G3xServiceImpl implements FlyGarminService {
 				injectFuelData(derivedRow, engineRow, startingFuel);
 				if(ahrsRow!=null) {
 					injectGenericData(derivedRow, engineRow);
-					//injectTempData(derivedRow, engineRow, ahrsRow);
+					injectTempData(derivedRow, engineRow, ahrsRow);
 					injectConfidenceData(derivedRow, ahrsRow);
 				}
 
@@ -147,11 +147,14 @@ public class G3xServiceImpl implements FlyGarminService {
 	private void injectTempData(Map<String, String> derived, Map<String, String> engine, Map<String, String> ahrs) {
 		// OAT - F to C, #9
 		try {
-			double tempF = Double.parseDouble(engine.get(EngineDataType.OAT.getJpi()));
-			double oatC = (tempF - 32) * (0.555);
-			String oatCString = String.format("%.1f", oatC);
-			derived.put(OAT, oatCString);
-			String oatFString = String.format("%d", (int)(tempF));
+			//double tempF = Double.parseDouble(engine.get(EngineDataType.OAT.getJpi()));
+			//double oatC = (tempF - 32) * (0.555);
+			double oatC = Double.parseDouble(ahrs.get(AhrsDataType.OAT.getG5()));
+			double oatF = (oatC * 1.8) +32;
+			
+//			String oatCString = String.format("%.1f", oatC);
+			//OAT now from G5 derived.put(OAT, oatCString);
+			String oatFString = String.format("%d", (int)(oatF));
 			derived.put("Nav Identifier", oatFString+'\u00B0'+" F");
 			
 			// TAS - OAT+IAS, 49
@@ -159,10 +162,10 @@ public class G3xServiceImpl implements FlyGarminService {
 			Double baro = Double.parseDouble(ahrs.get(AhrsDataType.BARO.getG5()));
 			Double ias = Double.parseDouble(ahrs.get(AhrsDataType.IAS.getG5()));
 	
-			Double tas = calculateTAS(baro, baroAlt, oatC, ias);
-			String trueair = String.format("%.0f", tas);
-			derived.put(TAS, trueair);
-	
+//			Double tas = calculateTAS(baro, baroAlt, oatC, ias);
+//			String trueair = String.format("%.0f", tas);
+//			derived.put(TAS, trueair);
+			Double tas  = Double.parseDouble(ahrs.get(AhrsDataType.TAS.getG5()));
 			
 			Double densAlt = calculateDensityAlt(baro, baroAlt, oatC, ias);
 			String da = String.format("%f", densAlt);

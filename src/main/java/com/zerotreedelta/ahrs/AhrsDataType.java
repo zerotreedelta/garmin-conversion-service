@@ -16,6 +16,8 @@ public enum AhrsDataType {
 	ALT_MSL("AltMSL", 13),
 	BARO_ALT("AltB", 14),
 	IAS("IAS", 16),
+	OAT("OAT", 16),
+	TAS("TAS", 99), 
 	PITCH("Pitch", 18),
 	ROLL("Roll", 19),
 	LATERAL_ACCEL("Lateral Acceleration (G)", 21),
@@ -36,7 +38,6 @@ public enum AhrsDataType {
 //	SELECTED_TRACK("Selected Track (deg)", ),
 //	AP_PITCH("AP Pitch Command (deg)", ),
 //	VNAV_DEV("VNAV Deviation", ),
-//	TAS("TAS", ), 							//49
 //	INTERNAL_TEMP("Internal Temperature (deg C)", ),
 //	GPS_VDOP("GPS VDOP", ),
 //	SEL_AIRSPEED("Selected Airspeed (kt)", ),
@@ -52,11 +53,6 @@ public enum AhrsDataType {
 	
 	private String g5;
 	private int txi;
-
-	public int getTxi() {
-		return txi;
-	}
-
 	
 	AhrsDataType(String g5, int txi) {
 		this.g5=g5;

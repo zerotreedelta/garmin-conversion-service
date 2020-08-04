@@ -147,7 +147,7 @@ public class G5ServiceImpl implements AHRSService {
 
 
 		JpiServiceImpl jpiService = new JpiServiceImpl();
-		EngineData engine = jpiService.getEngineData("4138121/6432fa8a-87c9-473d-a4a4-c436fbe2749a");
+		EngineData engine = jpiService.getEngineData("4138985/697e9575-dcce-4ba5-8ce3-df7aae3f6d0c");
 		
 		G5ServiceImpl g5Service = new G5ServiceImpl();
 		File f = new File("/home/dodgemich/workspaces/personal/garmin-conversion-service/src/test/resources/eight.csv");
