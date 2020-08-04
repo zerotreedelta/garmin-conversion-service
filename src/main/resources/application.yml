@@ -1,7 +1,7 @@
 # suppress inspection "UnusedProperty"
 logging:
   level:
-    root: WARN
+    root: debug
     com.zerotreedelta: INFO
     org:
       springframework:
