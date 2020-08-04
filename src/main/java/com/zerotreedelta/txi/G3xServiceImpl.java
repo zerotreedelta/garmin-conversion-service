@@ -55,7 +55,7 @@ public class G3xServiceImpl implements FlyGarminService {
 				injectFuelData(derivedRow, engineRow, startingFuel);
 				if(ahrsRow!=null) {
 					injectGenericData(derivedRow, engineRow);
-					injectTempData(derivedRow, engineRow, ahrsRow);
+					//injectTempData(derivedRow, engineRow, ahrsRow);
 					injectConfidenceData(derivedRow, ahrsRow);
 				}
 
