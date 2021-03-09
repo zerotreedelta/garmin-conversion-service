@@ -127,9 +127,19 @@ public class G3xServiceImpl implements FlyGarminService {
 			status = status.replace("D", "-");
 			status = status.replace("X", "");
 
+			
 			String[] fields = status.split(" ");
-			derived.put(STATUS_1_TIT, fields[1]);
-			derived.put(STATUS_2_IAT, fields[2]);
+			//force the "-99" fields to just be 0 for fly.garmin axis consistency
+			String field1 = fields[1];
+			if(field1.contains("-")){
+				field1 = "0";
+			}
+			String field2 = fields[2];
+			if(field2.contains("-")){
+				field2 = "0";
+			}
+			derived.put(STATUS_1_TIT, field1);
+			derived.put(STATUS_2_IAT, field2);
 
 		}
 	}
