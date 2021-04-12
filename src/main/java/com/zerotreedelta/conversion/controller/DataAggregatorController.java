@@ -1,7 +1,10 @@
 package com.zerotreedelta.conversion.controller;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 
 import org.joda.time.DateTime;
@@ -16,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.zerotreedelta.ahrs.AhrsData;
 import com.zerotreedelta.ahrs.G5ServiceImpl;
+import com.zerotreedelta.conversion.verbose.G5VerboseCombineService;
 import com.zerotreedelta.engine.EngineData;
 import com.zerotreedelta.engine.JpiServiceImpl;
 import com.zerotreedelta.txi.DerivedData;
@@ -56,7 +60,12 @@ class DataAggregatorController {
 			}
 
 		} else if ("application/zip".equals(file.getContentType())) {
-			smashVerboseLogs(file);
+			LOG.warn("Verbose logs");
+			try{
+				response = smashVerboseLogs(file);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 
 		return response;
@@ -115,8 +124,20 @@ class DataAggregatorController {
 		return response;
 	}
 
-	private String smashVerboseLogs(MultipartFile file) {
-		return "";
+	private String smashVerboseLogs(MultipartFile file) throws IOException {
+		G5VerboseCombineService s = new G5VerboseCombineService();
+		
+
+			File temp = File.createTempFile("verbose", "zip");
+			InputStream initialStream = file.getInputStream();
+			byte[] buffer = new byte[initialStream.available()];
+			initialStream.read(buffer);
+
+
+			try (OutputStream outStream = new FileOutputStream(temp)) {
+			    outStream.write(buffer);
+			}
+		return s.combine(temp);
 	}
 
 //	public static void main(String... strings) throws IOException {
