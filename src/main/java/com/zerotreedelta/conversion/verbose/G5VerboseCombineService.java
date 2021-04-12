@@ -31,7 +31,9 @@ public class G5VerboseCombineService {
 
 	    while(entries.hasMoreElements()){
 	        ZipEntry entry = entries.nextElement();
-	        if(!entry.isDirectory() && entry.getName().contains(".CSV")) {
+	        if(!entry.isDirectory() 
+	        		&& entry.getName().contains(".CSV") 
+	        		&& !(entry.getName().startsWith(".") || entry.getName().startsWith("_") )) {
 	        	InputStream stream = zipFile.getInputStream(entry);
 	        	parseFile(entry.getName().replaceAll(".CSV", ""), stream, combined);
 	        	stream.close();
