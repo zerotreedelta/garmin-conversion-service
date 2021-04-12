@@ -21,7 +21,7 @@ import com.zerotreedelta.engine.JpiServiceImpl;
 import com.zerotreedelta.txi.DerivedData;
 import com.zerotreedelta.txi.G3xServiceImpl;
 
-@CrossOrigin(value = {"*"}, exposedHeaders = {"Content-Disposition"})
+@CrossOrigin(value = { "*" }, exposedHeaders = { "Content-Disposition" })
 @RestController
 class DataAggregatorController {
 
@@ -29,39 +29,41 @@ class DataAggregatorController {
 
 	@Autowired
 	JpiServiceImpl jpiService;
-	
+
 	@Autowired
 	G5ServiceImpl g5Service;
-	
+
 	@Autowired
 	G3xServiceImpl g3xServiceImpl;
 
-
-	
 	@PostMapping(value = "/combine", produces = "text/csv")
 	public String combine(@RequestParam("file") MultipartFile file,
-		    @RequestParam(value="startingFuel", required=false, defaultValue = "100") Integer startingFuel,
-		    @RequestParam(value="jpiSecondsOffset", required=false) Integer jpiSecondsOffset,
+			@RequestParam(value = "startingFuel", required = false, defaultValue = "100") Integer startingFuel,
+			@RequestParam(value = "jpiSecondsOffset", required = false) Integer jpiSecondsOffset,
 			@RequestParam("savvyFlight") String savvyFlight) {
 
 		LOG.info("POST /combine");
-		
-		LOG.warn("File: " + file.getContentType() + ":" + file.getName());
-		
+
+		LOG.warn("File: " + file.getContentType() + ":" + file.getOriginalFilename());
+
 		String response = "";
-		if(savvyFlight!=null && !savvyFlight.isEmpty()) {
-			response = combineWithJPI(file, startingFuel, jpiSecondsOffset, savvyFlight);
-		} else {
-			LOG.info("G5 info only");
-			response = extendG5Only(file);
+		if ("text/csv".equals(file.getContentType())) {
+			if (savvyFlight != null && !savvyFlight.isEmpty()) {
+				response = combineWithJPI(file, startingFuel, jpiSecondsOffset, savvyFlight);
+			} else {
+				LOG.info("G5 info only");
+				response = extendG5Only(file);
+			}
+
+		} else if ("application/zip".equals(file.getContentType())) {
+			smashVerboseLogs(file);
 		}
 
 		return response;
 	}
 
-
-
-	private String combineWithJPI(MultipartFile file, Integer startingFuel, Integer jpiSecondsOffset, String savvyFlight) {
+	private String combineWithJPI(MultipartFile file, Integer startingFuel, Integer jpiSecondsOffset,
+			String savvyFlight) {
 		String response = "";
 		try {
 			// Get the file and save it somewhere
@@ -72,19 +74,19 @@ class DataAggregatorController {
 			EngineData engine = jpiService.getEngineData(savvyFlight);
 			AhrsData ahrs = g5Service.getSeries(f);
 			Integer secondsOffset = jpiSecondsOffset;
-			if(secondsOffset==null) {
+			if (secondsOffset == null) {
 				LOG.info("auto calc of adjustment");
 				DateTime jpiEstimated = jpiService.findTakeoffTime(engine);
 				DateTime g5Estimated = g5Service.findEstimatedTakeoff(ahrs, jpiEstimated);
-				
-				secondsOffset = (int)(  (g5Estimated.getMillis()-jpiEstimated.getMillis())/1000  );
-				LOG.info("Estimated correction: "  + secondsOffset);
-				LOG.info("JPI:"+jpiEstimated);
+
+				secondsOffset = (int) ((g5Estimated.getMillis() - jpiEstimated.getMillis()) / 1000);
+				LOG.info("Estimated correction: " + secondsOffset);
+				LOG.info("JPI:" + jpiEstimated);
 				LOG.info("G5 estimated: " + g5Estimated);
 			} else {
 				LOG.info("Using offset:" + jpiSecondsOffset);
 			}
-			
+
 			DerivedData derived = g3xServiceImpl.derive(ahrs, engine, startingFuel, secondsOffset);
 			response = g5Service.combine(ahrs, derived);
 			f.delete();
@@ -93,7 +95,7 @@ class DataAggregatorController {
 		}
 		return response;
 	}
-	
+
 	private String extendG5Only(MultipartFile file) {
 		String response = "";
 		try {
@@ -111,9 +113,12 @@ class DataAggregatorController {
 			e.printStackTrace();
 		}
 		return response;
-	}	
-	
-	
+	}
+
+	private String smashVerboseLogs(MultipartFile file) {
+		return "";
+	}
+
 //	public static void main(String... strings) throws IOException {
 //
 //		DataAggregatorController cont = new DataAggregatorController();
