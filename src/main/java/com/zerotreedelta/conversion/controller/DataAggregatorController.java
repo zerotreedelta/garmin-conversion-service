@@ -45,6 +45,9 @@ class DataAggregatorController {
 			@RequestParam("savvyFlight") String savvyFlight) {
 
 		LOG.info("POST /combine");
+		
+		LOG.warn("File: " + file.getContentType() + ":" + file.getName());
+		
 		String response = "";
 		if(savvyFlight!=null && !savvyFlight.isEmpty()) {
 			response = combineWithJPI(file, startingFuel, jpiSecondsOffset, savvyFlight);
