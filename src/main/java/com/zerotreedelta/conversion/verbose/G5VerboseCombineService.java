@@ -22,7 +22,7 @@ public class G5VerboseCombineService {
 	
 	private Set<String> masterKeyset = new HashSet<String>();
 	
-	public String combine(File zip) throws ZipException, IOException {
+	public String combine(File zip, Integer flightNumber) throws ZipException, IOException {
 		Map<Long, Map<String, String>> combined = new HashMap<Long, Map<String,String>>();
 		
 		ZipFile zipFile = new ZipFile(zip);
@@ -33,7 +33,12 @@ public class G5VerboseCombineService {
 	        ZipEntry entry = entries.nextElement();
 	        if(!entry.isDirectory() 
 	        		&& entry.getName().contains(".CSV") 
-	        		&& !(entry.getName().startsWith(".") || entry.getName().startsWith("_") || entry.getName().contains("~")  )) {
+	        		&& !(entry.getName().startsWith(".") || entry.getName().startsWith("_") || entry.getName().contains("~")  )
+	        		) {
+	        	
+	        	if(flightNumber!=null && !entry.getName().contains(flightNumber.toString())) {
+	        		continue;
+	        	}
 	        	InputStream stream = zipFile.getInputStream(entry);
 	        	parseFile(entry.getName().replaceAll(".CSV", ""), stream, combined);
 	        	stream.close();
@@ -121,6 +126,6 @@ public class G5VerboseCombineService {
 		File f = new File("/home/dodgemich/Downloads/double.zip");
 		
 		G5VerboseCombineService s = new G5VerboseCombineService();
-		System.out.println(s.combine(f));
+		System.out.println(s.combine(f, null));
 	}
 }

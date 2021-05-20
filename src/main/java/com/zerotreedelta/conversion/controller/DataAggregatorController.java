@@ -62,7 +62,7 @@ class DataAggregatorController {
 		} else if ("application/zip".equals(file.getContentType())) {
 			LOG.warn("Verbose logs");
 			try{
-				response = smashVerboseLogs(file);
+				response = smashVerboseLogs(file, jpiSecondsOffset);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -124,7 +124,7 @@ class DataAggregatorController {
 		return response;
 	}
 
-	private String smashVerboseLogs(MultipartFile file) throws IOException {
+	private String smashVerboseLogs(MultipartFile file, Integer flight) throws IOException {
 		G5VerboseCombineService s = new G5VerboseCombineService();
 		
 
@@ -137,7 +137,7 @@ class DataAggregatorController {
 			try (OutputStream outStream = new FileOutputStream(temp)) {
 			    outStream.write(buffer);
 			}
-		return s.combine(temp);
+		return s.combine(temp, flight);
 	}
 
 //	public static void main(String... strings) throws IOException {
