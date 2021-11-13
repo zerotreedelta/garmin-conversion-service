@@ -176,6 +176,7 @@ System.out.println("Sizes:" +aiAhrs.getData().size() + ":"+hsiAhrs!=null?hsiAhrs
 			if (!entry.isDirectory() 
 					&& (entry.getName().contains(".CSV") || entry.getName().contains(".csv"))
 					&& !entry.getName().startsWith(".")
+					&& !entry.getName().startsWith("_")
 					) {
 				
 				InputStream stream = zipFile.getInputStream(entry);
