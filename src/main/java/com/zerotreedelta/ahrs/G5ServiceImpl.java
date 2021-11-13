@@ -56,7 +56,6 @@ public class G5ServiceImpl implements AHRSService {
 				} catch (IOException e ) {
 					System.out.println("error in file: "+g5File);
 					System.out.println("error after processed: " + dt);
-					e.printStackTrace();
 				}
 			}
 		} catch (FileNotFoundException e) {
