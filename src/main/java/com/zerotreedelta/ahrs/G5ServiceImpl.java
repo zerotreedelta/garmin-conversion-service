@@ -36,6 +36,7 @@ public class G5ServiceImpl implements AHRSService {
 	public AhrsData getSeries(File g5File) {
 		AhrsData result = new AhrsData();
 
+		DateTime dt = null;
 		try {
 			
 			DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss").withZoneUTC();
@@ -49,8 +50,8 @@ public class G5ServiceImpl implements AHRSService {
 				Map<String, String> values = csv.readMap();
 				String time = values.get("UTC Time");
 				String date = values.get("UTC Date");
-				DateTime dt = formatter.parseDateTime(date + " " + time);
-				System.out.println(dt);
+				dt = formatter.parseDateTime(date + " " + time);
+				//System.out.println(dt);
 				result.getData().put(dt, values);
 			}
 		} catch (FileNotFoundException e) {
@@ -58,6 +59,7 @@ public class G5ServiceImpl implements AHRSService {
 			e.printStackTrace();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
+			System.out.println("last processed: " + dt);
 			e.printStackTrace();
 		}
 		
