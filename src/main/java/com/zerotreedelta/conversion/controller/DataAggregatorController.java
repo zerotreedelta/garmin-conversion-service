@@ -1,7 +1,9 @@
 package com.zerotreedelta.conversion.controller;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -189,9 +191,15 @@ class DataAggregatorController {
 				}
 				stream.close();
 				files.add(tmpCsv);
+				
+				
 				System.out.println("fromzip:" + entry.getName());
 				System.out.println("temp: "+tmpCsv.getName() + ":"+tmpCsv.length());
-				
+				FileReader rdr = new FileReader(tmpCsv);
+				BufferedReader br = new BufferedReader(rdr);
+				while(br.ready()) {
+					System.out.println(br.readLine());
+				}
 				
 			}
 		}
