@@ -27,36 +27,37 @@ public class G3xServiceImpl implements FlyGarminService {
 	private static final String OAT = "OAT";
 	private static final String TAS = "TAS";
 	private static final String DENSITY_ALTITUDE = "Density Altitude";
-	
+
 	private static final String STATUS_1_TIT = "E1 TIT1";
 	private static final String STATUS_2_IAT = "E1 TIT2";
-	
+	private static final String STATUS_3_TIT = "E2 TIT1";
+	private static final String STATUS_4_IAT = "E2 TIT2";
+	private static final String STATUS_5_IAT = "E3 TIT1";
 	private static Logger LOG = LoggerFactory.getLogger(G3xServiceImpl.class);
-	
+
 	@Override
 	public DerivedData derive(AhrsData ahrs, EngineData engineOrig, int startingFuel, int secondsOffset) {
-		
-		
+
 		EngineData engine = adjust(engineOrig, secondsOffset);
 		DerivedData result = new DerivedData();
 		try {
 			Set<DateTime> timeSet = engine.getData().keySet();
 			List<DateTime> orderedTime = new ArrayList<>(timeSet);
 			Collections.sort(orderedTime);
-			
+
 			for (DateTime t : orderedTime) {
 
 				Map<String, String> derivedRow = new HashMap<String, String>();
 
 				Map<String, String> ahrsRow = ahrs.getData().get(t);
-				
+
 				Map<String, String> engineRow = engine.getData().get(t);
 
 				injectFuelData(derivedRow, engineRow, startingFuel);
-				if(ahrsRow!=null) {
+				if (ahrsRow != null) {
 					injectGenericData(derivedRow, engineRow);
 					injectTempData(derivedRow, engineRow, ahrsRow);
-					injectConfidenceData(derivedRow, ahrsRow);
+					injectConfidenceData(derivedRow, ahrsRow, null);
 				}
 
 				result.getData().put(t, derivedRow);
@@ -68,23 +69,23 @@ public class G3xServiceImpl implements FlyGarminService {
 		}
 		return result;
 	}
-	
-	
+
 	@Override
-	public DerivedData derive(AhrsData ahrs) {
+	public DerivedData derive(AhrsData aiAhrs, AhrsData hsiAhrs) {
 		DerivedData result = new DerivedData();
 		try {
-			Set<DateTime> timeSet = ahrs.getData().keySet();
+			Set<DateTime> timeSet = aiAhrs.getData().keySet();
 			List<DateTime> orderedTime = new ArrayList<>(timeSet);
 			Collections.sort(orderedTime);
-			
+
 			for (DateTime t : orderedTime) {
 
 				Map<String, String> derivedRow = new HashMap<String, String>();
 
-				Map<String, String> ahrsRow = ahrs.getData().get(t);
+				Map<String, String> ahrsRow = aiAhrs.getData().get(t);
+				Map<String, String> ahrs2Row = hsiAhrs.getData().get(t);
 
-				injectConfidenceData(derivedRow, ahrsRow);
+				injectConfidenceData(derivedRow, ahrsRow, ahrs2Row);
 
 				result.getData().put(t, derivedRow);
 //				result.append(String.join(",", outputRow) + "\n");
@@ -95,15 +96,13 @@ public class G3xServiceImpl implements FlyGarminService {
 		}
 		return result;
 	}
-		
-		
-	
+
 	private EngineData adjust(EngineData engine, int secondsOffset) {
 		Set<DateTime> timeSet = engine.getData().keySet();
 		List<DateTime> orderedTime = new ArrayList<>(timeSet);
 		Collections.sort(orderedTime);
 		EngineData result = new EngineData();
-		Map<DateTime, Map<String, String>> resultMap = new HashMap<DateTime, Map<String,String>>();
+		Map<DateTime, Map<String, String>> resultMap = new HashMap<DateTime, Map<String, String>>();
 		result.setData(resultMap);
 		for (DateTime t : orderedTime) {
 			DateTime adjustedDateTime = t.plusSeconds(secondsOffset);
@@ -111,7 +110,6 @@ public class G3xServiceImpl implements FlyGarminService {
 		}
 		return result;
 	}
-	
 
 //	private void clearColumns(String[] txi) {
 //		for (int i=0; i<txi.length; i++) {
@@ -119,32 +117,52 @@ public class G3xServiceImpl implements FlyGarminService {
 //		}
 //	}
 
-	
-	private void injectConfidenceData(Map<String, String> derived, Map<String, String> ahrs) {
+	private void injectConfidenceData(Map<String, String> derived, Map<String, String> ahrs,
+			Map<String, String> ahrs2) {
 		String status = ahrs.get("Attitude Status");
-		if(status!=null) {
+		if (status != null) {
 			status = status.replace("N", "");
 			status = status.replace("D", "-");
 			status = status.replace("X", "");
 
-			
 			String[] fields = status.split(" ");
-			//force the "-99" fields to just be 0 for fly.garmin axis consistency
+			// force the "-99" fields to just be 0 for fly.garmin axis consistency
 			String field1 = fields[1];
-			if(field1.contains("-")){
+			if (field1.contains("-")) {
 				field1 = "0";
 			}
 			String field2 = fields[2];
-			if(field2.contains("-")){
+			if (field2.contains("-")) {
 				field2 = "0";
 			}
 			derived.put(STATUS_1_TIT, field1);
 			derived.put(STATUS_2_IAT, field2);
-
 		}
-	}
 
-		
+		if (ahrs2 != null) {
+			status = ahrs2.get("Attitude Status");
+
+			if (status != null) {
+				status = status.replace("N", "");
+				status = status.replace("D", "-");
+				status = status.replace("X", "");
+
+				String[] fields = status.split(" ");
+				// force the "-99" fields to just be 0 for fly.garmin axis consistency
+				String field1 = fields[1];
+				if (field1.contains("-")) {
+					field1 = "0";
+				}
+				String field2 = fields[2];
+				if (field2.contains("-")) {
+					field2 = "0";
+				}
+				derived.put(STATUS_3_TIT, field1);
+				derived.put(STATUS_4_IAT, field2);
+			}
+		}
+		derived.put(STATUS_5_IAT, "0");
+	}
 
 	private void injectGenericData(Map<String, String> derived, Map<String, String> engine) {
 		for (EngineDataType t : EngineDataType.values()) {
@@ -157,26 +175,26 @@ public class G3xServiceImpl implements FlyGarminService {
 	private void injectTempData(Map<String, String> derived, Map<String, String> engine, Map<String, String> ahrs) {
 		// OAT - F to C, #9
 		try {
-			//double tempF = Double.parseDouble(engine.get(EngineDataType.OAT.getJpi()));
-			//double oatC = (tempF - 32) * (0.555);
+			// double tempF = Double.parseDouble(engine.get(EngineDataType.OAT.getJpi()));
+			// double oatC = (tempF - 32) * (0.555);
 			double oatC = Double.parseDouble(ahrs.get(AhrsDataType.OAT.getG5()));
-			double oatF = (oatC * 1.8) +32;
-			
+			double oatF = (oatC * 1.8) + 32;
+
 //			String oatCString = String.format("%.1f", oatC);
-			//OAT now from G5 derived.put(OAT, oatCString);
-			String oatFString = String.format("%d", (int)(oatF));
-			derived.put("Nav Identifier", oatFString+'\u00B0'+" F");
-			
+			// OAT now from G5 derived.put(OAT, oatCString);
+			String oatFString = String.format("%d", (int) (oatF));
+			derived.put("Nav Identifier", oatFString + '\u00B0' + " F");
+
 			// TAS - OAT+IAS, 49
 			Double baroAlt = Double.parseDouble(ahrs.get(AhrsDataType.BARO_ALT.getG5()));
 			Double baro = Double.parseDouble(ahrs.get(AhrsDataType.BARO.getG5()));
 			Double ias = Double.parseDouble(ahrs.get(AhrsDataType.IAS.getG5()));
-	
+
 //			Double tas = calculateTAS(baro, baroAlt, oatC, ias);
 //			String trueair = String.format("%.0f", tas);
 //			derived.put(TAS, trueair);
-			Double tas  = Double.parseDouble(ahrs.get(AhrsDataType.TAS.getG5()));
-			
+			Double tas = Double.parseDouble(ahrs.get(AhrsDataType.TAS.getG5()));
+
 			Double densAlt = calculateDensityAlt(baro, baroAlt, oatC, ias);
 			String da = String.format("%f", densAlt);
 			derived.put(DENSITY_ALTITUDE, da);
@@ -187,7 +205,7 @@ public class G3xServiceImpl implements FlyGarminService {
 			injectWind(th, tc, tas, gs, derived);
 		} catch (Exception e) {
 			LOG.debug("Can't calculate winds/temp", e);
-		
+
 		}
 	}
 
@@ -201,7 +219,7 @@ public class G3xServiceImpl implements FlyGarminService {
 	}
 
 	private void injectWind(Double th, Double tc, Double tas, Double gs, Map<String, String> derived) {
-		////WndSpd, WndDr, TAS
+		//// WndSpd, WndDr, TAS
 
 		Double gsh = Math.sin(Math.toRadians((tc % 360))) * gs; // Horizontal Portion of GS Vector
 		Double gsv = Math.cos(Math.toRadians((tc % 360))) * gs; // Vertical Portion of GS Vector
@@ -244,7 +262,7 @@ public class G3xServiceImpl implements FlyGarminService {
 		Double ff = ee * ias;
 		return ff;
 	}
-	
+
 	private Double calculateDensityAlt(Double baroSetting, Double indAlt, Double tempInC, Double ias) {
 		// Constants
 		Double stdtemp0 = 288.15; // deg Kelvin
@@ -260,8 +278,7 @@ public class G3xServiceImpl implements FlyGarminService {
 		Double densityAlt = pressureAlt + tRatio * (1 - Math.pow(xx, 0.234969));
 		return densityAlt;
 	}
-	
-	
+
 //	public static void main(String... strings) throws IOException {
 //
 //		JpiServiceImpl jpi = new JpiServiceImpl();
