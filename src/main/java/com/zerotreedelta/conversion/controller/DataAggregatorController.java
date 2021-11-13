@@ -148,8 +148,6 @@ class DataAggregatorController {
 			hsiAhrs = g5Service.getSeries(hsi);
 		}
 		
-		System.out.println("Sizes:" +aiAhrs.getData().size() + ":"+hsiAhrs!=null?hsiAhrs.getData().size():"NA");
-
 		DerivedData derived = g3xServiceImpl.derive(aiAhrs, hsiAhrs);
 		response = g5Service.combine(aiAhrs, derived);
 
