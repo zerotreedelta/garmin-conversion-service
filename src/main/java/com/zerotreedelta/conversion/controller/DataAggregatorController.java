@@ -138,8 +138,7 @@ class DataAggregatorController {
 
 		AhrsData aiAhrs = g5Service.getSeries(ai);
 		AhrsData hsiAhrs = g5Service.getSeries(ai);
-		
-		
+
 		DerivedData derived = g3xServiceImpl.derive(aiAhrs, hsiAhrs);
 		response = g5Service.combine(aiAhrs, derived);
 
@@ -147,17 +146,19 @@ class DataAggregatorController {
 	}
 
 	private String smashTwoLogs(MultipartFile file, Integer flight) throws IOException {
-		
-		File temp = File.createTempFile("verbose", "zip");
-		InputStream initialStream = file.getInputStream();
-		byte[] buffer = new byte[initialStream.available()];
-		initialStream.read(buffer);
+		ZipFile zipFile = null;
+		{
+			File temp = File.createTempFile("verbose", "zip");
+			InputStream initialStream = file.getInputStream();
+			byte[] buffer = new byte[initialStream.available()];
+			initialStream.read(buffer);
 
-		try (OutputStream outStream = new FileOutputStream(temp)) {
-			outStream.write(buffer);
+			try (OutputStream outStream = new FileOutputStream(temp)) {
+				outStream.write(buffer);
+			}
+
+			zipFile = new ZipFile(temp);
 		}
-
-		ZipFile zipFile = new ZipFile(temp);
 
 		Enumeration<? extends ZipEntry> entries = zipFile.entries();
 
@@ -170,7 +171,7 @@ class DataAggregatorController {
 				File tmpCsv = File.createTempFile("tmp", "CSV");
 				byte[] csvBuffer = new byte[stream.available()];
 				stream.read(csvBuffer);
-				try (OutputStream outStream = new FileOutputStream(temp)) {
+				try (OutputStream outStream = new FileOutputStream(tmpCsv)) {
 					outStream.write(csvBuffer);
 				}
 				stream.close();
@@ -179,8 +180,6 @@ class DataAggregatorController {
 		}
 
 		zipFile.close();
-		
-		
 
 		return extendG5Only(files.get(0), files.get(1));
 	}
