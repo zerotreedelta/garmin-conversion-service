@@ -83,7 +83,7 @@ public class G3xServiceImpl implements FlyGarminService {
 				Map<String, String> derivedRow = new HashMap<String, String>();
 
 				Map<String, String> ahrsRow = aiAhrs.getData().get(t);
-				Map<String, String> ahrs2Row = hsiAhrs.getData().get(t);
+				Map<String, String> ahrs2Row = hsiAhrs!=null?hsiAhrs.getData().get(t):null;
 
 				injectConfidenceData(derivedRow, ahrsRow, ahrs2Row);
 
