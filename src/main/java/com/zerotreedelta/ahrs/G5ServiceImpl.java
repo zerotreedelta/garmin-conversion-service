@@ -50,6 +50,7 @@ public class G5ServiceImpl implements AHRSService {
 				String time = values.get("UTC Time");
 				String date = values.get("UTC Date");
 				DateTime dt = formatter.parseDateTime(date + " " + time);
+				System.out.println(dt);
 				result.getData().put(dt, values);
 			}
 		} catch (FileNotFoundException e) {
