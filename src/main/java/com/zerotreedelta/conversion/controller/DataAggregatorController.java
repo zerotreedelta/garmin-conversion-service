@@ -137,7 +137,7 @@ class DataAggregatorController {
 //			Files.write(f.toPath(), bytes);
 
 		AhrsData aiAhrs = g5Service.getSeries(ai);
-		AhrsData hsiAhrs = g5Service.getSeries(ai);
+		AhrsData hsiAhrs = g5Service.getSeries(hsi);
 
 		DerivedData derived = g3xServiceImpl.derive(aiAhrs, hsiAhrs);
 		response = g5Service.combine(aiAhrs, derived);
