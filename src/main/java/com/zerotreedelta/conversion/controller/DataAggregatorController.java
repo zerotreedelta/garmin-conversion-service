@@ -136,9 +136,12 @@ class DataAggregatorController {
 //			File f = File.createTempFile("g5upload", "csv");
 //			Files.write(f.toPath(), bytes);
 
+		System.out.println("processing file "+ ai.getName());
 		AhrsData aiAhrs = g5Service.getSeries(ai);
 		AhrsData hsiAhrs = null;
 		if(hsi!=null) {
+			System.out.println("processing file 2"+ ai.getName());
+
 			hsiAhrs = g5Service.getSeries(hsi);
 		}
 
