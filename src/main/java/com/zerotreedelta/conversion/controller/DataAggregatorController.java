@@ -165,13 +165,13 @@ class DataAggregatorController {
 
 		while (entries.hasMoreElements()) {
 			ZipEntry entry = entries.nextElement();
-			if (!entry.isDirectory() && entry.getName().contains(".CSV")) {
+			if (!entry.isDirectory() && (entry.getName().contains(".CSV") || entry.getName().contains(".csv"))) {
 				InputStream stream = zipFile.getInputStream(entry);
 				File tmpCsv = File.createTempFile("tmp", "CSV");
 				byte[] csvBuffer = new byte[stream.available()];
-				initialStream.read(buffer);
+				initialStream.read(csvBuffer);
 				try (OutputStream outStream = new FileOutputStream(temp)) {
-					outStream.write(buffer);
+					outStream.write(csvBuffer);
 				}
 				stream.close();
 				files.add(tmpCsv);
