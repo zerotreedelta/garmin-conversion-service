@@ -169,7 +169,7 @@ class DataAggregatorController {
 				InputStream stream = zipFile.getInputStream(entry);
 				File tmpCsv = File.createTempFile("tmp", "CSV");
 				byte[] csvBuffer = new byte[stream.available()];
-				initialStream.read(csvBuffer);
+				stream.read(csvBuffer);
 				try (OutputStream outStream = new FileOutputStream(temp)) {
 					outStream.write(csvBuffer);
 				}
