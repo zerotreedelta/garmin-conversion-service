@@ -53,6 +53,7 @@ public class G5ServiceImpl implements AHRSService {
 				dt = formatter.parseDateTime(date + " " + time);
 				//System.out.println(dt);
 				result.getData().put(dt, values);
+				System.out.println(values);
 				} catch (IOException e ) {
 					System.out.println("error in file: "+g5File);
 					System.out.println("error after processed: " + dt);
