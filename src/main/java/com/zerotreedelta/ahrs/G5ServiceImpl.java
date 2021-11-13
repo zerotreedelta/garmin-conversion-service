@@ -41,8 +41,13 @@ public class G5ServiceImpl implements AHRSService {
 
 			FileReader rdr = new FileReader(g5File);
 			BufferedReader br = new BufferedReader(rdr);
+			while (br.ready()) {
+				System.out.println(br.readLine());
+			}
 			br.readLine();
 			br.readLine();
+			
+			
 			CSVReaderHeaderAware csv = new CSVReaderHeaderAware(br);
 			while (br.ready()) {
 				try{
