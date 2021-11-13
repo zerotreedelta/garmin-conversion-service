@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.apache.commons.compress.utils.IOUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -184,12 +185,24 @@ class DataAggregatorController {
 				
 				InputStream stream = zipFile.getInputStream(entry);
 				File tmpCsv = File.createTempFile("tmp", "CSV");
-				byte[] csvBuffer = new byte[stream.available()];
-				stream.read(csvBuffer);
-				try (OutputStream outStream = new FileOutputStream(tmpCsv)) {
-					outStream.write(csvBuffer);
-				}
-				stream.close();
+				
+				OutputStream outStream = new FileOutputStream(tmpCsv);
+				byte[] buffer = new byte[8 * 1024];
+			    int bytesRead;
+			    while ((bytesRead = stream.read(buffer)) != -1) {
+			        outStream.write(buffer, 0, bytesRead);
+			    }
+			    IOUtils.closeQuietly(stream);
+			    IOUtils.closeQuietly(outStream);
+//			    
+//				byte[] csvBuffer = new byte[stream.available()];
+//				stream.read(csvBuffer);
+//				try (OutputStream outStream = new FileOutputStream(tmpCsv)) {
+//					outStream.write(csvBuffer);
+//				} catch (Exception e) {
+//					e.printStackTrace();
+//				}
+//				stream.close();
 				files.add(tmpCsv);
 				
 				
