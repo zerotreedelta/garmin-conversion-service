@@ -140,7 +140,7 @@ class DataAggregatorController {
 		AhrsData aiAhrs = g5Service.getSeries(ai);
 		AhrsData hsiAhrs = null;
 		if(hsi!=null) {
-			System.out.println("processing file 2"+ ai.getName());
+			System.out.println("processing file 2"+ hsi.getName());
 
 			hsiAhrs = g5Service.getSeries(hsi);
 		}
