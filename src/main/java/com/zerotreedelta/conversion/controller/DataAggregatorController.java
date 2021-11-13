@@ -208,11 +208,6 @@ class DataAggregatorController {
 				
 				System.out.println("fromzip:" + entry.getName());
 				System.out.println("temp: "+tmpCsv.getName() + ":"+tmpCsv.length());
-				FileReader rdr = new FileReader(tmpCsv);
-				BufferedReader br = new BufferedReader(rdr);
-				while(br.ready()) {
-					System.out.println(br.readLine());
-				}
 				
 			}
 		}
