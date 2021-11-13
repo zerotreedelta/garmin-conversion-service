@@ -8,13 +8,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
@@ -47,19 +45,24 @@ public class G5ServiceImpl implements AHRSService {
 			br.readLine();
 			CSVReaderHeaderAware csv = new CSVReaderHeaderAware(br);
 			while (br.ready()) {
-				Map<String, String> values = csv.readMap();
+				try{
+					Map<String, String> values = csv.readMap();
+			
 				String time = values.get("UTC Time");
 				String date = values.get("UTC Date");
 				dt = formatter.parseDateTime(date + " " + time);
 				//System.out.println(dt);
 				result.getData().put(dt, values);
+				} catch (IOException e ) {
+					System.out.println("error in file: "+g5File);
+					System.out.println("error after processed: " + dt);
+					e.printStackTrace();
+				}
 			}
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			System.out.println("last processed: " + dt);
 			e.printStackTrace();
 		}
 		
