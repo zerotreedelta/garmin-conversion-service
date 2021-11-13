@@ -147,8 +147,7 @@ class DataAggregatorController {
 	}
 
 	private String smashTwoLogs(MultipartFile file, Integer flight) throws IOException {
-		G5VerboseCombineService s = new G5VerboseCombineService();
-
+		
 		File temp = File.createTempFile("verbose", "zip");
 		InputStream initialStream = file.getInputStream();
 		byte[] buffer = new byte[initialStream.available()];
@@ -183,7 +182,7 @@ class DataAggregatorController {
 		
 		
 
-		return s.combine(temp, flight);
+		return extendG5Only(files.get(0), files.get(1));
 	}
 
 	private String smashVerboseLogs(MultipartFile file, Integer flight) throws IOException {
