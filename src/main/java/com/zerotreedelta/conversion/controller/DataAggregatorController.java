@@ -173,7 +173,10 @@ System.out.println("Sizes:" +aiAhrs.getData().size() + ":"+hsiAhrs!=null?hsiAhrs
 
 		while (entries.hasMoreElements()) {
 			ZipEntry entry = entries.nextElement();
-			if (!entry.isDirectory() && (entry.getName().contains(".CSV") || entry.getName().contains(".csv"))) {
+			if (!entry.isDirectory() 
+					&& (entry.getName().contains(".CSV") || entry.getName().contains(".csv"))
+					&& !entry.getName().startsWith(".")
+					) {
 				
 				InputStream stream = zipFile.getInputStream(entry);
 				File tmpCsv = File.createTempFile("tmp", "CSV");
@@ -185,7 +188,7 @@ System.out.println("Sizes:" +aiAhrs.getData().size() + ":"+hsiAhrs!=null?hsiAhrs
 				stream.close();
 				files.add(tmpCsv);
 				System.out.println("fromzip:" + entry.getName());
-				System.out.println("temp: "+tmpCsv.getName() + ":"+tmpCsv.length()/1024/1024);
+				System.out.println("temp: "+tmpCsv.getName() + ":"+tmpCsv.length());
 				
 				
 			}
